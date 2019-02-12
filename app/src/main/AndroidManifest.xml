@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.leandro.aridosmobile">
+
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/logoaridos"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/logoaridos"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity android:name=".MainActivity"
+            android:label="Aridos Santa Fe Mobile">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".Menu"
+            android:label="Aridos Santa Fe Mobile ">
+        </activity>
+
+        <activity android:name=".MenuAcopio"
+            android:label="Menu Acopio">
+        </activity>
+
+        <activity android:name=".MenuProduccion"
+            android:label="Menu Produccion">
+        </activity>
+
+        <activity android:name=".MenuSalida"
+            android:label="Menu Salida">
+        </activity>
+
+        <activity android:name=".Pager"
+            android:label="Ayuda">
+        </activity>
+
+        <activity android:name=".Map"
+            android:label="Map">
+        </activity>
+
+        <activity android:name=".Report_entrada"
+            android:label="Generar reporte entrada}">
+        </activity>
+
+        <activity android:name=".Resumenes_diarios_acopio"
+            android:label="Generar Resumenes diarios">
+        </activity>
+
+    </application>
+
+</manifest>

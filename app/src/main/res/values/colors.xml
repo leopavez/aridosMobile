@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#006064</color>
+    <color name="colorPrimaryDark">#004244</color>
+    <color name="colorPrimaryLight">#B2DFDB</color>
+    <color name="colorAccent">#44BBCA</color>
+
+    <color name="black">#FF000000</color>
+    <color name="black_75">#BB000000</color>
+
+    <color name="white">#FFFFFF</color>
+
+    <color name="clauss_gray">#666666</color>
+
+
+    <color name="mapboxWhite">#ffffff</color>
+    <color name="mapboxBlue">#4264fb</color>
+    <color name="mapboxGrayLight">#c6d2e1</color>
+
+    <color name="clauss_blue">#3B5998</color>
+    <color name="clauss_darkblue">#546E7A</color>
+    <color name="clauss_lightblue">#44BBCA</color>
+
+    <color name="clauss_darkgreen">#006064</color>
+    <color name="clauss_lightgreen">#B2DFDB</color>
+
+
+    <color name="clauss_red">#E57373</color>
+    <color name="clauss_orange">#FF8A65</color>
+    <color name="clauss_yellow">#FFB74D</color>
+
+    <color name="clauss_lightgray">#FFF5F5F5</color>
+    <color name="clauss_mediumgray">#FFDBDBDB</color>
+
+    <!-- VANDU -->
+
+    <color name="semitransparent">#33004244</color>
+    <color name="transparent">#00000000</color>
+    <color name="gray_238">#FFEEEEEE</color>
+    <color name="gray_245">#FFF5F5F5</color>
+    <color name="background_base_light">#FFFAFAFA</color>
+    <color name="background_base">#FFEEEEEE</color>
+    <color name="background_lists">#FFDDDDDD</color>
+
+    <color name="challenge_background">#FF80CBC4</color>
+    <color name="icons">#FF44BBCA</color>
+    <color name="icons_pressed">#FF2bb0ba</color>
+    <color name="statusbar">#FF00ACB5</color>
+    <color name="green_valid">#FF81C784</color>
+
+    <color name="brand_1">#FFFCB64E</color>
+    <color name="brand_2">#FFF58967</color>
+    <color name="status_negative">#FFE57373</color>
+    <color name="base_white">#FFF5F7FA</color>
+    <color name="base_bg">#FFEEEEEE</color>
+    <color name="list_bg">#FFDDDDDD</color>
+    <color name="black_dialog">#40000000</color>
+    <color name="text_disabled">#FF9B9B9B</color>
+    <color name="common_text">#FF4D4D4D</color>
+    <color name="vandu_blue">#FF546E7A</color>
+    <color name="vandu_subtitulos">#FF4D4D4D</color>
+    <color name="shadow_color">#4D000000</color>
+
+</resources>
