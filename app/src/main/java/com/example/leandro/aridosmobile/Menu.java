@@ -1,11 +1,14 @@
 package com.example.leandro.aridosmobile;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class Menu extends AppCompatActivity implements View.OnClickListener{
 
@@ -26,6 +29,7 @@ public class Menu extends AppCompatActivity implements View.OnClickListener{
         reportsalida_card.setOnClickListener(this);
         ajustes_card.setOnClickListener(this);
 
+        cargarCredenciales();
 
         wizard.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,10 +50,24 @@ public class Menu extends AppCompatActivity implements View.OnClickListener{
             case R.id.acopiocard : i = new Intent(this,MenuAcopio.class);startActivity(i);overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_left);break;
             case R.id.produccioncard : i = new Intent(this,MenuProduccion.class);startActivity(i);overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right);break;
             case R.id.reportsalida : i = new Intent(this,MenuSalida.class);startActivity(i);overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_left);break;
-            case R.id.ajustescard: i = new Intent(this,Map.class); startActivity(i);overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_left);break;
+            case R.id.ajustescard: i = new Intent(this,Ajustes.class); startActivity(i);overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_left);break;
             default:break;
         }
     }
+
+
+    public void cargarCredenciales(){
+        SharedPreferences preferences = getSharedPreferences("credenciales", Context.MODE_PRIVATE);
+
+        String name = preferences.getString("NAME","NO EXISTE LA CREDENCIAL");
+        String lastname = preferences.getString("LASTNAME", "NO EXISTE LA CREDENCIAL");
+
+        Toast.makeText(this, "El nombre es: "+name+" "+lastname, Toast.LENGTH_SHORT).show();
+
+
+    }
+
+
 
 
 }

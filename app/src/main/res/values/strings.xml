@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">AridosMobile</string>
     <string name="access_token">pk.eyJ1IjoibGVvcGF2ZXoiLCJhIjoiY2pyc2l6bTY0MXE3ZjN5cm80Mjg1c2s4OSJ9.Kf_VvAlvfVpeGy1jW6u3EQ</string>
+    <string name="error_message_error">Error, los datos ignresados no coinciden</string>
 </resources>

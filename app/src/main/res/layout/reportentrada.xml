@@ -30,7 +30,7 @@
             android:textColor="#000"
             android:layout_marginTop="20dp"
             android:textStyle="bold"
-            android:layout_marginLeft="140dp"/>
+            android:layout_gravity="center"/>
 
         <AutoCompleteTextView
             android:id="@+id/patentesreporteentrada"
@@ -40,6 +40,7 @@
             android:layout_marginRight="40dp"
             android:layout_marginLeft="40dp"
             android:layout_marginTop="15dp"
+            android:layout_gravity="center"
             android:inputType="textPersonName"
             android:drawableLeft="@drawable/ic_local_shipping_black_24dp"
             android:hint="Escriba patente"
@@ -49,13 +50,13 @@
 
         <TextView
             android:id="@+id/textviewm3entrega"
-            android:layout_width="70dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=">M3:"
+            android:text=">Cantidad M3:"
             android:textColor="#000"
+            android:layout_gravity="center"
             android:layout_marginTop="20dp"
-            android:textStyle="bold"
-            android:layout_marginLeft="150dp"/>
+            android:textStyle="bold"/>
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
@@ -68,6 +69,7 @@
                 android:layout_marginLeft="50dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginRight="50dp"
+                android:inputType="number"
                 android:drawableLeft="@drawable/ic_filter_3_black_24dp"
                 android:drawablePadding="10dp"
                 android:ems="10"
@@ -83,8 +85,8 @@
         android:text=">Nombre del conductor:"
         android:textColor="#000"
         android:layout_marginTop="20dp"
-        android:textStyle="bold"
-        android:layout_marginLeft="120dp"/>
+        android:layout_gravity="center"
+        android:textStyle="bold"/>
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
@@ -105,13 +107,13 @@
         </android.support.design.widget.TextInputLayout>
 
         <Button
-            android:id="@+id/btninicio"
+            android:id="@+id/btnregistroentrada"
             style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="155dp"
             android:layout_height="35dp"
-            android:layout_marginLeft="100dp"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="20dp"
+            android:layout_gravity="center"
             android:background="@drawable/btnredondo"
             android:gravity="center"
             android:text="REGISTRAR ENTRADA" />
