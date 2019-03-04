@@ -1,5 +1,6 @@
 package com.example.leandro.aridosmobile;
 
+import android.app.ExpandableListActivity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -23,6 +24,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,15 +55,17 @@ public class Report_entrada extends AppCompatActivity {
     EditText m3, chofername;
     private AutoCompleteTextView pt;
     Button registro;
+    Switch voucher;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.reportentrada);
+        voucher = (Switch)findViewById(R.id.switchVoucher);
         m3 = (EditText) findViewById(R.id.txtm3entrada);
         chofername = (EditText)findViewById(R.id.txtnchofer);
         registro = (Button)findViewById(R.id.btnregistroentrada);
         pt = findViewById(R.id.patentesreporteentrada);
-
+        EstadoVoucherImp();
         registro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -69,29 +73,91 @@ public class Report_entrada extends AppCompatActivity {
                         || chofername.getText().toString().equals("")){
                     Toast.makeText(getApplicationContext(),"Debes llenar todos los campos",Toast.LENGTH_SHORT).show();
                 }else{
-                    SharedPreferences preferences1 = getSharedPreferences("plantaApp", Context.MODE_PRIVATE);
-                    String plantaname = preferences1.getString("NAME_PLANTA", "");
+                    SharedPreferences preferencesvoucher = getSharedPreferences("Voucher", Context.MODE_PRIVATE);
+                    String estado = preferencesvoucher.getString("estado","false");
 
-                    SharedPreferences preferences = getSharedPreferences("credenciales", Context.MODE_PRIVATE);
+                    if (estado.toString().equals("false")){
 
-                    String name = preferences.getString("NAME","NO EXISTE LA CREDENCIAL");
-                    String lastname = preferences.getString("LASTNAME", "NO EXISTE LA CREDENCIAL");
 
-                    String username = name + " "+lastname;
+                        SharedPreferences preferences1 = getSharedPreferences("plantaApp", Context.MODE_PRIVATE);
+                        String plantaname = preferences1.getString("NAME_PLANTA", "");
 
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                    SimpleDateFormat horaformat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
-                    Date date = new Date();
-                    String fecha = dateFormat.format(date);
-                    String hora = horaformat.format(date);
+                        SharedPreferences preferences = getSharedPreferences("credenciales", Context.MODE_PRIVATE);
 
-                    myDB.Registro_acopio(pt.getText().toString(),m3.getText().toString(), plantaname,chofername.getText().toString(),
-                            username,fecha,hora,"PENDIENTE");
-                    EstadoVoucher();
+                        String name = preferences.getString("NAME","NO EXISTE LA CREDENCIAL");
+                        String lastname = preferences.getString("LASTNAME", "NO EXISTE LA CREDENCIAL");
+
+                        String username = name + " "+lastname;
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                        SimpleDateFormat horaformat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+                        Date date = new Date();
+                        String fecha = dateFormat.format(date);
+                        String hora = horaformat.format(date);
+
+                        myDB.Registro_acopio(pt.getText().toString(),m3.getText().toString(), plantaname,chofername.getText().toString(),
+                                username,fecha,hora,"PENDIENTE");
+
+                       vaciodecampos();
+                        Toast.makeText(getApplicationContext(), "Registro de entrada ingresado",Toast.LENGTH_SHORT).show();
+
+                    }else{
+                        SharedPreferences preferences1 = getSharedPreferences("plantaApp", Context.MODE_PRIVATE);
+                        String plantaname = preferences1.getString("NAME_PLANTA", "");
+
+                        SharedPreferences preferences = getSharedPreferences("credenciales", Context.MODE_PRIVATE);
+
+                        String name = preferences.getString("NAME","NO EXISTE LA CREDENCIAL");
+                        String lastname = preferences.getString("LASTNAME", "NO EXISTE LA CREDENCIAL");
+
+                        String username = name + " "+lastname;
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                        SimpleDateFormat horaformat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+                        Date date = new Date();
+                        String fecha = dateFormat.format(date);
+                        String hora = horaformat.format(date);
+
+                        myDB.Registro_acopio(pt.getText().toString(),m3.getText().toString(), plantaname,chofername.getText().toString(),
+                                username,fecha,hora,"PENDIENTE");
+
+                        Toast.makeText(getApplicationContext(), "Registro de entrada ingresado",Toast.LENGTH_SHORT).show();
+                        TareaenSegundoPlano sp = new TareaenSegundoPlano();
+                        sp.execute();
+                    }
                 }
             }
         });
         LoadDataPatentes();
+
+        voucher.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (voucher.isChecked()){
+                    SwitchEstado("true");
+                    Toast.makeText(getApplicationContext(),"La impresión de Voucher se encuentra habilitada",Toast.LENGTH_SHORT).show();
+                }else{
+                    SwitchEstado("false");
+                    Toast.makeText(getApplicationContext(),"La impresión de Voucher fue deshabilitada",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+    }
+
+    private void vaciodecampos(){
+
+        chofername.setText("");
+        pt.setText("");
+        m3.setText("");
+    }
+
+    public void SwitchEstado(String value){
+        SharedPreferences preferences = getSharedPreferences("Voucher", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("estado",value);
+        editor.commit();
+
     }
 
     private void LoadDataPatentes(){
@@ -109,21 +175,22 @@ public class Report_entrada extends AppCompatActivity {
         });
     }
 
-    private void EstadoVoucher(){
+    private void EstadoVoucherImp(){
         SharedPreferences preferences = getSharedPreferences("Voucher", Context.MODE_PRIVATE);
-        String estado = preferences.getString("estado","Sin estado");
+        String estado = preferences.getString("estado","false");
 
         if (estado.toString().equals("true")){
-            TareaenSegundoPlano sp = new TareaenSegundoPlano();
-            sp.execute();
-            Intent intent = new Intent(this,Report_entrada.class);
-            startActivity(intent);
+            voucher.setChecked(true);
+
         }else if (estado.toString().equals("false")){
-            Toast.makeText(getApplicationContext(), "Registro de entrada ingresado",Toast.LENGTH_SHORT).show();
+            voucher.setChecked(false);
+        }else{
+            voucher.setChecked(false);
         }
+
     }
 
-    private void ImprimirVoucher(String cantidad, String nvale){
+    private void ImprimirVoucher(String cantidad, String nvale,String patente, String m3imp, String chofer){
         try {
             int nvoucher = Integer.parseInt(cantidad);
             SharedPreferences preferences = getSharedPreferences("printer", Context.MODE_PRIVATE);
@@ -131,6 +198,7 @@ public class Report_entrada extends AppCompatActivity {
             SharedPreferences preferences1 = getSharedPreferences("plantaApp", Context.MODE_PRIVATE);
             String plantaname = preferences1.getString("NAME_PLANTA", "");
             String idplanta = preferences1.getString("ID_PLANTA","");
+
 
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -156,13 +224,13 @@ public class Report_entrada extends AppCompatActivity {
 
             for (int i = 0; i <= nvoucher-1; i++) {
 
-                String msg = " "+" "+" "+" Aridos Santa Fe "+" "+"\n"+
+                String msg = " "+" "+" "+ " "+" "+" "+" "+" "+" "+" Aridos Santa Fe "+" "+"\n"+
                         " " + " "+" "+""+" "+" " +" "+" "+" "+""+" "+"\n"+
                         " " +"\n"+
                         " " + "N vale: "+nvale+"\n"+
-                        " " + "Patente: "+pt.getText().toString()+"\n"+
-                        " " + "Cantidad M3: "+m3.getText().toString()+"\n"+
-                        " " + "Chofer: "+chofername.getText().toString()+"\n"+
+                        " " + "Patente: "+patente+"\n"+
+                        " " + "Cantidad M3: "+m3imp+"\n"+
+                        " " + "Chofer: "+chofer+"\n"+
                         " " + "Fecha: "+fecha+"\n"+
                         " " + "Hora: "+hora+"\n"+
                         " " + "Planta: "+plantaname+"\n"+
@@ -172,25 +240,32 @@ public class Report_entrada extends AppCompatActivity {
                         " " +"\n"+
                         " " +"\n";
                 os.write(msg.getBytes());
+                vaciodecampos();
                 Thread.sleep(6000);
             }
             mBluetoothSocket.close();
+
         }catch (Exception e){
             Log.e("Report_entrada","Error: "+e);
         }
 
     }
 
+
+
     public class TareaenSegundoPlano extends AsyncTask<Void, Integer, Boolean> {
         @Override
         protected Boolean doInBackground(Void... voids) {
+            String patenteIMP = pt.getText().toString();
+            String m3IMP = m3.getText().toString();
+            String choferIMP = chofername.getText().toString();
             SharedPreferences preferences1 = getSharedPreferences("Cvoucher", Context.MODE_PRIVATE);
             String cantidad = preferences1.getString("cantidad","1");
             SQLiteDatabase db = myDB.getWritableDatabase();
-            Cursor cursor = db.rawQuery("SELECT id FROM registros_acopio ORDER BY id DESC LIMIT 1",null);
+            Cursor cursor = db.rawQuery("SELECT id FROM registros_acopio ORDER BY id DESC",null);
             if (cursor.moveToFirst()){
                 String nvale = cursor.getString(0);
-                ImprimirVoucher(cantidad,nvale);
+                ImprimirVoucher(cantidad,nvale,patenteIMP,m3IMP,choferIMP);
             }
             return true;
         }

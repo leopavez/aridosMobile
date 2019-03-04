@@ -26,10 +26,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String PASSWORD = "password";
     public static final String ESTADO = "estado";
 
-    //PLANTA APLICACION
-    public static final String ID_PLANTA = "id";
-    public static final String NOMBRE_PLANTA = "nombre";
-    public static final String UBICACION = "ubicacion";
 
     //PLANTAS
     public static final String ID_LOG_PLANTAS = "id";
@@ -44,9 +40,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String MARCA = "marca";
     public static final String M3 = "m3";
 
-    //IMPRESORA - PARAMETROS
-    public static final String ID_IMPRESORA = "id";
-    public static final String MASCARA = "mascara";
 
     //REGISTROS - ACOPIO
 
@@ -64,11 +57,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 
     final String CREAR_TABLA_USUARIOS = "CREATE TABLE usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT,log_id TEXT unique, nombre TEXT, apellido TEXT, username TEXT, password TEXT, estado TEXT)";
-    final String CREAR_TABLA_PARAMETROS_PLANTA = "CREATE TABLE planta (id TEXT, nombre TEXT, UBICACION text)";
-    final String CREAR_TABLA_PARAMETROS_IMPRESORA = "CREATE TABLE impresora (id INTEGER PRIMARY KEY AUTOINCREMENT, mascara TEXT)";
     final String CREAR_TABLA_LISTADO_PLANTAS = "CREATE TABLE plantas_list (id TEXT unique, nombre TEXT, ubicacion TEXT)";
     final String CREAR_TABLA_VEHICULOS = "CREATE TABLE vehiculos (id TEXT unique, patente TEXT unique, tipo TEXT, propietario TEXT, marca TEXT, m3 TEXT)";
-    final String CREAR_TABLA_REGISTROS_ACOPIO = "CREATE TABLE registros_acopio (id INTEGER PRIMARY KEY AUTOINCREMENT, patente TEXT, m3 TEXT, planta TEXT, chofer TEXT, username TEXT, fecha TEXT, hora TEXT, estado TEXT)";
+    final String CREAR_TABLA_REGISTROS_ACOPIO = "CREATE TABLE registros_acopio (id INTEGER PRIMARY KEY AUTOINCREMENT, patente TEXT, m3 TEXT, planta TEXT, chofer TEXT,   TEXT, fecha TEXT, hora TEXT, estado TEXT)";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null,1);
@@ -77,10 +68,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db){
         db.execSQL(CREAR_TABLA_USUARIOS);
-        db.execSQL(CREAR_TABLA_PARAMETROS_PLANTA);
         db.execSQL(CREAR_TABLA_LISTADO_PLANTAS);
         db.execSQL(CREAR_TABLA_VEHICULOS);
-        db.execSQL(CREAR_TABLA_PARAMETROS_IMPRESORA);
         db.execSQL(CREAR_TABLA_REGISTROS_ACOPIO);
     }
 
@@ -90,14 +79,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS planta");
         db.execSQL("DROP TABLE IF EXISTS plantas_list");
         db.execSQL("DROP TABLE IF EXISTS vehiculos");
-        db.execSQL("DROP TABLE IF EXISTS impresora");
         db.execSQL("DROP TABLE IF EXISTS registros_acopio");
 
         db.execSQL(CREAR_TABLA_USUARIOS);
-        db.execSQL(CREAR_TABLA_PARAMETROS_PLANTA);
         db.execSQL(CREAR_TABLA_LISTADO_PLANTAS);
         db.execSQL(CREAR_TABLA_VEHICULOS);
-        db.execSQL(CREAR_TABLA_PARAMETROS_IMPRESORA);
         db.execSQL(CREAR_TABLA_REGISTROS_ACOPIO);
     }
 

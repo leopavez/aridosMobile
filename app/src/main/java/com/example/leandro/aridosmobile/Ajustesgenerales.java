@@ -61,14 +61,15 @@ public class Ajustesgenerales extends AppCompatActivity {
     private void EstadoVoucher(){
         SharedPreferences preferences = getSharedPreferences("Voucher", Context.MODE_PRIVATE);
 
-        String estado = preferences.getString("estado","Sin estado");
+        String estado = preferences.getString("estado","false");
 
         if (estado.toString().equals("true")){
             voucher.setChecked(true);
+
         }else if (estado.toString().equals("false")){
             voucher.setChecked(false);
         }else{
-            voucher.setChecked(true);
+            voucher.setChecked(false);
         }
 
     }
