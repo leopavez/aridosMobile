@@ -67,6 +67,7 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:gravity="center">
+
                 <ImageView
                     android:layout_width="64dp"
                     android:layout_height="64dp"
@@ -109,14 +110,14 @@
                 <ImageView
                     android:layout_width="64dp"
                     android:layout_height="64dp"
-                    android:background="@drawable/ic_local_shipping_black_24dp"
+                    android:background="@drawable/ic_data_usage_black_24dp"
                     android:padding="10dp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
                     android:layout_marginTop="10dp"
-                    android:text="Actualizar patentes"/>
+                    android:text="Actualizar Datos"/>
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
@@ -126,7 +127,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="Actualiza el listado de pantentes disponibles"
+                    android:text="Actualiza datos como: Plantas, Operadores, Vehiculos, Etc."
                     android:padding="5dp"
                     android:textColor="@android:color/darker_gray"/>
 

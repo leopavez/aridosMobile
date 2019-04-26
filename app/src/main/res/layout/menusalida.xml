@@ -20,7 +20,7 @@
         <android.support.v7.widget.CardView
             android:foreground="?android:attr/selectableItemBackground"
             android:clickable="true"
-            android:id="@+id/rentrada"
+            android:id="@+id/rsalida"
             android:layout_width="160dp"
             android:layout_height="190dp"
             android:layout_margin="10dp">
@@ -59,7 +59,7 @@
         <android.support.v7.widget.CardView
             android:foreground="?android:attr/selectableItemBackground"
             android:clickable="true"
-            android:id="@+id/resumendiario"
+            android:id="@+id/resumensalida"
             android:layout_width="160dp"
             android:layout_height="190dp"
             android:layout_margin="10dp">
@@ -78,7 +78,7 @@
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
                     android:layout_marginTop="10dp"
-                    android:text="Resumen diario"/>
+                    android:text="Resumen salida"/>
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
@@ -88,7 +88,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="Genera el resumen de salida del acopio por patente"
+                    android:text="Genera el resumen de salida del material producido"
                     android:padding="5dp"
                     android:textColor="@android:color/darker_gray"/>
 
