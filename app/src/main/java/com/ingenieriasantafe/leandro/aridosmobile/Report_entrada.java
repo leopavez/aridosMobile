@@ -1,6 +1,5 @@
 package com.ingenieriasantafe.leandro.aridosmobile;
 
-import android.app.ExpandableListActivity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -10,23 +9,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
-import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.InputStream;
@@ -219,10 +212,7 @@ public class Report_entrada extends AppCompatActivity {
                                     }
                                 }
                             }).start();
-
-
                         }if (registro == false){
-
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -240,19 +230,18 @@ public class Report_entrada extends AppCompatActivity {
                                             }
                                         });
                                     } catch (InterruptedException e) {
-                                        e.printStackTrace();
+                                         e.printStackTrace();
                                     }
 
                                 }
                             }).start();
 
+                            }
                         }
                     }
                 }
-            }
         });
         LoadDataPatentes();
-
         voucher.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -265,9 +254,7 @@ public class Report_entrada extends AppCompatActivity {
                 }
             }
         });
-
     }
-
 
     public void SwitchEstado(String value){
         SharedPreferences preferences = getSharedPreferences("Voucher", Context.MODE_PRIVATE);
@@ -314,8 +301,6 @@ public class Report_entrada extends AppCompatActivity {
             String mask = preferences.getString("mask", "");
             SharedPreferences preferences1 = getSharedPreferences("plantaApp", Context.MODE_PRIVATE);
             String plantaname = preferences1.getString("NAME_PLANTA", "");
-            String idplanta = preferences1.getString("ID_PLANTA","");
-
 
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -327,6 +312,8 @@ public class Report_entrada extends AppCompatActivity {
             mBluetoothSocket = mBluetoothDevice.createRfcommSocketToServiceRecord(applicationUUID);
             mBluetoothAdapter.cancelDiscovery();
             mBluetoothSocket.connect();
+
+            Log.i("TAG","METODO DE IMPRIMIR");
 
             OutputStream os = mBluetoothSocket.getOutputStream();
             InputStream is = mBluetoothSocket.getInputStream();
@@ -354,9 +341,6 @@ public class Report_entrada extends AppCompatActivity {
                         " " + "Planta: "+plantaname+"\n"+
                         " " +"\n"+
                         " " +"\n"+
-                        " " + "------------------------------"+"\n"+
-                        " " +"\n"+
-                        " " +"\n"+
                         " " + "KM:............................" +"\n"+
                         " " +"\n"+
                         " " +"\n"+
@@ -373,11 +357,11 @@ public class Report_entrada extends AppCompatActivity {
             }
             mBluetoothSocket.close();
 
-        }catch (Exception e){
+       }catch (Exception e){
 
         }
 
-    }
 
+    }
 
 }

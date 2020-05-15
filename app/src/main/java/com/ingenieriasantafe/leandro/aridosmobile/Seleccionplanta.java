@@ -114,14 +114,19 @@ public class Seleccionplanta extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
+
+
+                String identificador = String.valueOf(nombre.substring(0,3));
+
                 SharedPreferences preferences = getSharedPreferences("plantaApp", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor =preferences.edit();
                 editor.putString("ID_PLANTA", id);
                 editor.putString("NAME_PLANTA", nombre);
+                editor.putString("IDENTIFICADOR",identificador);
                 editor.putString("UBICACION",ubicación);
                 editor.commit();
 
-                Toast.makeText(getApplicationContext(), "Planta configurada: "+nombre, Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getApplicationContext(), "Planta configurada: "+nombre, Toast.LENGTH_SHORT).show();
                 Intent i = new Intent(Seleccionplanta.this, AjustesParametros.class);
                 startActivity(i);
                 finish();

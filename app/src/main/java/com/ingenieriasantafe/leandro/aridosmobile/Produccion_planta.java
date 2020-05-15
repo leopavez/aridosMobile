@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -68,7 +69,6 @@ public class Produccion_planta extends AppCompatActivity {
         generarproduccion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if (tipomaterial.getItemAtPosition(tipomaterial.getSelectedItemPosition()).toString().equals("Seleccione material") ||
                         m3.getText().toString().equals("") || procedencia.getText().toString().equals("")){
                     Toast.makeText(getApplicationContext(), "Error, verifique los campos", Toast.LENGTH_SHORT).show();
@@ -131,10 +131,10 @@ public class Produccion_planta extends AppCompatActivity {
                                     String msg = " "+" "+" "+" "+" "+" "+" "+"Aridos Santa Fe "+" "+" "+" "+"\n"+
                                             " " + " "+" "+""+" "+" " +" "+" "+" "+""+" "+"\n"+
                                             " " +"\n"+
-                                            " " + "Fecha/Hora: "+fecha+" "+""+hora+"\n"+
+                                            " " + "Fecha: "+fecha+" "+""+hora+"\n"+
                                             " " + "Tipo material: "+tipomaterial.getItemAtPosition(tipomaterial.getSelectedItemPosition()).toString()+"\n"+
                                             " " + "M3: "+m3.getText().toString()+"\n"+
-                                            " " + "Procedencia: "+procedencia.getText().toString()+"\n"+
+                                            " " + "Procedencia: "+procedencia.getText().toString().toUpperCase()+"\n"+
                                             " " + "Planta: "+planta+"\n"+
                                             " " + "Usuario: "+username+"\n"+
                                             " " +"\n"+

@@ -15,12 +15,14 @@ import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -38,7 +40,8 @@ public class Report_salida extends AppCompatActivity {
 
     Spinner tipomaterial;
     AutoCompleteTextView patente;
-    EditText m3, nombrechofer, procedencia, destino;
+    EditText m3, nombrechofer, procedencia;
+    Spinner destinomaterial;
     Button GenerarSalida;
     ProgressDialog progressDialog;
 
@@ -52,6 +55,9 @@ public class Report_salida extends AppCompatActivity {
     private ProgressDialog mBluetoothConnectProgressDialog;
     private BluetoothSocket mBluetoothSocket;
     BluetoothDevice mBluetoothDevice;
+
+    ArrayList<Unegocios> unegocioslist;
+    ArrayList<String> listaunegocios;
 
 
     DatabaseHelper myDB;
@@ -69,18 +75,35 @@ public class Report_salida extends AppCompatActivity {
         nombrechofer = (EditText) findViewById(R.id.choferSalida);
         procedencia = (EditText) findViewById(R.id.procedenciaSalida);
         GenerarSalida = (Button)findViewById(R.id.btngenerarSalida);
-        destino = (EditText)findViewById(R.id.destinoSalida);
+        destinomaterial = (Spinner)findViewById(R.id.destinomaterialsalida);
         progressDialog = new ProgressDialog(Report_salida.this);
 
         myDB = new DatabaseHelper(this);
         GenerarSalida.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                SQLiteDatabase db = myDB.getReadableDatabase();
+                String pt = patente.getText().toString();
+
+                Cursor cursor = db.rawQuery("SELECT id FROM vehiculos WHERE LOWER(patente) ='"+pt.toLowerCase()+"'",null);
+
+                if (cursor.moveToFirst() == true){
+
                     ingresoSalida();
+                }else{
+                    Toast.makeText(Report_salida.this, "La patente no se encuentra en el sistema", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
         LoadDataPatentes();
+        CargadeUnegocios();
+
+        ArrayAdapter<CharSequence> adaptador = new ArrayAdapter(this,android.R.layout.simple_spinner_item,listaunegocios);
+        adaptador.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        destinomaterial.setAdapter(adaptador);
+
 
     }
 
@@ -94,18 +117,45 @@ public class Report_salida extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+
+
                 m3.setText(patentesSearchAdapter.getItem(position).getM3());
             }
         });
     }
 
+    private void CargadeUnegocios(){
+        SQLiteDatabase db = myDB.getWritableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT nombre FROM unegocios",null);
+        unegocioslist = new ArrayList<Unegocios>();
+        Unegocios unegocios = null;
+
+        while (cursor.moveToNext()){
+            unegocios = new Unegocios();
+            unegocios.setNombre(cursor.getString(0));
+
+            unegocioslist.add(unegocios);
+        }
+
+        listaunegocios = new ArrayList<String>();
+        listaunegocios.add("SELECCIONE DESTINO");
+
+        for (int i=0; i<unegocioslist.size();i++){
+
+            listaunegocios.add(unegocioslist.get(i).getNombre());
+        }
+
+
+    }
+
     private void ingresoSalida(){
         if (patente.getText().toString().equals("") || m3.getText().toString().equals("") ||
-                nombrechofer.getText().toString().equals("") || procedencia.getText().toString().equals("") || destino.getText().toString().equals("")){
+                nombrechofer.getText().toString().equals("") || procedencia.getText().toString().equals("")){
             Toast.makeText(getApplicationContext(), "Error, favor complete los campos",Toast.LENGTH_SHORT).show();
         }else{
-            if (tipomaterial.getSelectedItem().toString().equals("Seleccione material")){
-                Toast.makeText(getApplicationContext(), "Error, favor seleccione un material valido",Toast.LENGTH_SHORT).show();
+            if (tipomaterial.getSelectedItem().toString().equals("Seleccione material") || destinomaterial.getSelectedItem().toString().equals("SELECCIONE DESTINO")){
+                Toast.makeText(getApplicationContext(), "Error, favor seleccione un material o destino valido",Toast.LENGTH_SHORT).show();
             }else{
 
                 SharedPreferences preferences1 = getSharedPreferences("plantaApp", Context.MODE_PRIVATE);
@@ -123,8 +173,9 @@ public class Report_salida extends AppCompatActivity {
                 final String fecha = dateFormat.format(date);
                 final String hora = horaformat.format(date);
 
+                Toast.makeText(this, "DESTINO SELECCIONADO: "+destinomaterial.getSelectedItem().toString(), Toast.LENGTH_SHORT).show();
                 Boolean registro = myDB.RegistroSalida(patente.getText().toString(),m3.getText().toString(),tipomaterial.getSelectedItem().toString(),planta,nombrechofer.getText().toString(),
-                        username,fecha,hora,"PENDIENTE",procedencia.getText().toString(),destino.getText().toString());
+                        username,fecha,hora,"PENDIENTE",procedencia.getText().toString(),destinomaterial.getSelectedItem().toString());
 
                 if (registro == true) {
                     progressDialog.setTitle("Generando salida");
@@ -166,18 +217,16 @@ public class Report_salida extends AppCompatActivity {
                                     String msg = " "+" "+" "+" "+" "+" "+" "+"Aridos Santa Fe "+" "+" "+" "+"\n"+
                                             " " + " "+" "+""+" "+" " +" "+" "+" "+""+" "+"\n"+
                                             " " +"\n"+
-                                            " " + "F/H: "+fecha+" "+""+hora+"\n"+
+                                            " " + "Fecha: "+fecha+" "+""+hora+"\n"+
                                             " " + "N Vale: "+nvale+"\n"+
-                                            " " + "Patente: "+patente.getText().toString()+"\n"+
+                                            " " + "Patente: "+patente.getText().toString().toUpperCase()+"\n"+
                                             " " + "Tipo material: "+tipomaterial.getSelectedItem().toString()+"\n"+
                                             " " + "M3: "+m3.getText().toString()+"\n"+
-                                            " " + "Procedencia: "+procedencia.getText().toString()+"\n"+
-                                            " " + "Destino: "+destino.getText().toString()+"\n"+
-                                            " " + "Chofer: "+nombrechofer.getText().toString()+"\n"+
+                                            " " + "Procedencia: "+procedencia.getText().toString().toUpperCase()+"\n"+
+                                            " " + "Destino: "+destinomaterial.getSelectedItem().toString().toUpperCase()+"\n"+
+                                            " " + "Chofer: "+nombrechofer.getText().toString().toUpperCase()+"\n"+
                                             " " + "Usuario: "+username+"\n"+
                                             " " + "Planta: "+planta+"\n"+
-                                            " " +"\n"+
-                                            " " +"\n"+
                                             " " +"\n"+
                                             " " +"\n"+
                                             " " + "Nombre:........................" +"\n"+
@@ -187,7 +236,7 @@ public class Report_salida extends AppCompatActivity {
                                             " " +"\n"+
                                             " " +"\n"+
                                             " "+" "+" "+" "+" "+" "+" "+"Report Salida"+" "+" "+" "+"\n"+
-                                            " "+" "+" "+" "+" "+" "+" "+"Copia Operador "+" "+" "+" "+"\n"+
+                                            " "+" "+" "+" "+" "+" "+" "+"Copia Obra "+" "+" "+" "+"\n"+
                                             " " +"\n"+
                                             " " +"\n"+
                                             " " +"\n";
@@ -197,18 +246,44 @@ public class Report_salida extends AppCompatActivity {
                                     String msg2 = " "+" "+" "+" "+" "+" "+" "+"Aridos Santa Fe "+" "+" "+" "+"\n"+
                                             " " + " "+" "+""+" "+" " +" "+" "+" "+""+" "+"\n"+
                                             " " +"\n"+
-                                            " " + "F/H: "+fecha+" "+""+hora+"\n"+
+                                            " " + "Fecha: "+fecha+" "+""+hora+"\n"+
                                             " " + "N Vale: "+nvale+"\n"+
-                                            " " + "Patente: "+patente.getText().toString()+"\n"+
+                                            " " + "Patente: "+patente.getText().toString().toUpperCase()+"\n"+
                                             " " + "Tipo material: "+tipomaterial.getSelectedItem().toString()+"\n"+
                                             " " + "M3: "+m3.getText().toString()+"\n"+
-                                            " " + "Procedencia: "+procedencia.getText().toString()+"\n"+
-                                            " " + "Destino: "+destino.getText().toString()+"\n"+
-                                            " " + "Chofer: "+nombrechofer.getText().toString()+"\n"+
+                                            " " + "Procedencia: "+procedencia.getText().toString().toUpperCase()+"\n"+
+                                            " " + "Destino: "+destinomaterial.getSelectedItem().toString().toUpperCase()+"\n"+
+                                            " " + "Chofer: "+nombrechofer.getText().toString().toUpperCase()+"\n"+
                                             " " + "Usuario: "+username+"\n"+
                                             " " + "Planta: "+planta+"\n"+
                                             " " +"\n"+
                                             " " +"\n"+
+                                            " " + "Nombre:........................" +"\n"+
+                                            " " +"\n"+
+                                            " " +"\n"+
+                                            " " + "Firma:........................." +"\n"+
+                                            " " +"\n"+
+                                            " " +"\n"+ " "+" "+" "+" "+" "+" "+" "+"Report Salida"+" "+" "+" "+"\n"+
+                                            " "+" "+" "+" "+" "+" "+"Copia conductor"+" "+" "+" "+"\n"+
+                                            " " +"\n"+
+                                            " " +"\n"+
+                                            " " +"\n";
+
+                                    os.write(msg2.getBytes());
+                                    Thread.sleep(5000);
+                                    String msg3 = " "+" "+" "+" "+" "+" "+" "+"Aridos Santa Fe "+" "+" "+" "+"\n"+
+                                            " " + " "+" "+""+" "+" " +" "+" "+" "+""+" "+"\n"+
+                                            " " +"\n"+
+                                            " " + "Fecha: "+fecha+" "+""+hora+"\n"+
+                                            " " + "N Vale: "+nvale+"\n"+
+                                            " " + "Patente: "+patente.getText().toString().toUpperCase()+"\n"+
+                                            " " + "Tipo material: "+tipomaterial.getSelectedItem().toString()+"\n"+
+                                            " " + "M3: "+m3.getText().toString()+"\n"+
+                                            " " + "Procedencia: "+procedencia.getText().toString().toUpperCase()+"\n"+
+                                            " " + "Destino: "+destinomaterial.getSelectedItem().toString().toUpperCase()+"\n"+
+                                            " " + "Chofer: "+nombrechofer.getText().toString().toUpperCase()+"\n"+
+                                            " " + "Usuario: "+username+"\n"+
+                                            " " + "Planta: "+planta+"\n"+
                                             " " +"\n"+
                                             " " +"\n"+
                                             " " + "Nombre:........................" +"\n"+
@@ -221,12 +296,10 @@ public class Report_salida extends AppCompatActivity {
                                             " " +"\n"+
                                             " " +"\n"+
                                             " " +"\n";
-
-                                    os.write(msg2.getBytes());
+                                    os.write(msg3.getBytes());
                                     mBluetoothSocket.close();
                                     Thread.sleep(3000);
                                     progressDialog.dismiss();
-
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -280,12 +353,9 @@ public class Report_salida extends AppCompatActivity {
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-
                         }
                     }).start();
-
                 }
-
             }
         }
     }

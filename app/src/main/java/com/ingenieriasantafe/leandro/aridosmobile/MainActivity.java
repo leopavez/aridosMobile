@@ -63,6 +63,7 @@ private InputValidation inputValidation;
 
 
 public static final String APIUsuarios = "http://santafeinversiones.org/api/aridos/users";
+public static final String APIUnegociosAridos = "http://santafeinversiones.org/api/aridos/all/unegocios";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +72,7 @@ public static final String APIUsuarios = "http://santafeinversiones.org/api/arid
         lusers = (TextInputLayout) findViewById(R.id.textinputLayoutusers);
         lpass = (TextInputLayout) findViewById(R.id.textInputLayoutpass);
         this.DescargaUsuarios();
+        this.DescargaUnegocios();
         usuario = (TextInputEditText) findViewById(R.id.txtusuario);
         password = (TextInputEditText) findViewById(R.id.txtpassword);
         ingresar = (Button) findViewById(R.id.btninicio);
@@ -78,6 +80,8 @@ public static final String APIUsuarios = "http://santafeinversiones.org/api/arid
         inputValidation = new InputValidation(this);
 
         myDB = new DatabaseHelper(this);
+
+
 
 
         notificacion = new NotificationCompat.Builder(this);
@@ -121,6 +125,7 @@ public static final String APIUsuarios = "http://santafeinversiones.org/api/arid
                 try {
                     String json;
 
+                    Log.i("TAG",response);
                     json = response.toString();
                     JSONArray jsonArray = null;
                     jsonArray = new JSONArray(json);
@@ -212,5 +217,71 @@ public static final String APIUsuarios = "http://santafeinversiones.org/api/arid
             }
 
         }
+
+
+
+    private void DescargaUnegocios(){
+        mRequestQueue = Volley.newRequestQueue(this);
+        mStringRequest = new StringRequest(Request.Method.GET, APIUnegociosAridos, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+
+                try {
+                    String json;
+
+                    Log.i("TaaaAG",response);
+                    json = response.toString();
+                    JSONArray jsonArray = null;
+                    jsonArray = new JSONArray(json);
+                    Unegocios unegocios = new Unegocios();
+
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+                        unegocios.id = jsonObject.getString("id");
+                        unegocios.nombre = jsonObject.getString("nombre");
+                        unegocios.estado = jsonObject.getString("estado");
+
+                        SQLiteDatabase db = myDB.getWritableDatabase();
+
+                        Cursor cursor = db.rawQuery("SELECT id, nombre, estado FROM unegocios WHERE id ='"+unegocios.id+"'",null);
+
+                        if (cursor.getCount() <=0){
+                            //NO SE ENCUENTRA LA UNEGOCIO Y SE REGISTRA
+                            myDB.RegistroUnegocios(unegocios.id,unegocios.nombre,unegocios.estado);
+
+                        }else{
+                            if (cursor.moveToFirst() == true){
+                                String id = cursor.getString(0);
+                                String nombre = cursor.getString(1);
+                                if (unegocios.estado.toString().equals("INACTIVO")){
+
+                                    db.execSQL("DELETE FROM unegocios WHERE id ='"+unegocios.id+"'");
+
+                                }else{
+                                    if(id != unegocios.id){
+                                        db.execSQL("UPDATE unegocios SET id='"+unegocios.id+"' WHERE id='"+unegocios.id+"'");
+                                    }
+                                    if(nombre != unegocios.nombre){
+                                        db.execSQL("UPDATE unegocios SET nombre='"+unegocios.nombre+"' WHERE id='"+unegocios.id+"'");
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+        mRequestQueue.add(mStringRequest);
+    }
 
 }

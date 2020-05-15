@@ -7,6 +7,13 @@
     android:layout_height="match_parent"
     tools:context="com.ingenieriasantafe.leandro.aridosmobile.MainActivity">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Version 1.3.1"
+        android:layout_marginLeft="5dp"
+        android:textStyle="bold" />
+
     <ImageView
         android:id="@+id/imageView"
         android:layout_marginTop="30dp"
@@ -64,7 +71,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="320dp">
+        android:layout_height="wrap_content">
 
         <Button
             android:id="@+id/btninicio"
@@ -79,7 +86,11 @@
             android:text="Entrar" />
 
 
+
+
       </RelativeLayout>
+
+
 
 
 </LinearLayout>

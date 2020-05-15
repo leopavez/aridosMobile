@@ -102,8 +102,6 @@ public class Registro_acopio {
         this.estado = estado;
     }
 
-
-
     public String getProcedencia() {
         return procedencia;
     }

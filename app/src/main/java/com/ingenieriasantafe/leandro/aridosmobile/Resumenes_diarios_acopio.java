@@ -21,6 +21,7 @@ import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -74,150 +75,428 @@ public class Resumenes_diarios_acopio extends AppCompatActivity {
 
    @Override
    public void onClick(View v) {
-       progressDialog.setTitle("Acopio - Resumen");
-       progressDialog.setMessage("Espere un momento......");
-       progressDialog.setProgressStyle(progressDialog.STYLE_SPINNER);
-       progressDialog.setMax(100);
-       progressDialog.show();
-       progressDialog.setCancelable(false);
 
-      new Thread(new Runnable() {
-          @Override
-          public void run() {
+       try{
+           progressDialog.setTitle("Generando reporte");
+           progressDialog.setMessage("Espere un momento......");
+           progressDialog.setProgressStyle(progressDialog.STYLE_SPINNER);
+           progressDialog.setMax(100);
+           progressDialog.show();
+           progressDialog.setCancelable(false);
 
-              runOnUiThread(new Runnable() {
-                  @Override
-                  public void run() {
+           new Thread(new Runnable() {
+               @Override
+               public void run() {
 
-                      for (int i=0; i<=2;i++){
-                          try{
-                              ImprimirResumenXPatente(pt.getText().toString());
-                              Thread.sleep(5000);
-                          }catch (Exception e){
-                              e.printStackTrace();
-                          }
-                      }
-                      progressDialog.dismiss();
-                      Intent intent = new Intent(Resumenes_diarios_acopio.this, Menu.class);
-                      startActivity(intent);
-                      finish();
-                  }
-              });
-           }
-      }).start();
+                   try{
+                       copiaJefeplanta();
+                       Thread.sleep(6000);
+                       copiaChofer();
+                       Thread.sleep(6000);
+                       copiapropietario();
+                       Thread.sleep(3000);
+                       progressDialog.dismiss();
+                   }catch (Exception e){
+                       e.printStackTrace();
+                   }
+
+
+               }
+           }).start();
+
+
+
+       }catch (Exception e){
+           e.printStackTrace();
+       }
+
+
    }
   });
   LoadDataPatentes();
 
  }
- private void LoadDataPatentes(){
-  List<Vehiculos> patents = new ArrayList<Vehiculos>();
-  final PatentesSearchAdapter patentesSearchAdapter = new PatentesSearchAdapter(getApplicationContext(),patents);
-  pt.setThreshold(1);
-  pt.setAdapter(patentesSearchAdapter);
+
+    private void LoadDataPatentes(){
+        List<Vehiculos> patents = new ArrayList<Vehiculos>();
+        final PatentesSearchAdapter patentesSearchAdapter = new PatentesSearchAdapter(getApplicationContext(),patents);
+        pt.setThreshold(1);
+        pt.setAdapter(patentesSearchAdapter);
  }
 
- private void ImprimirResumenXPatente(String patente){
 
-     try{
+ public void copiaJefeplanta(){
 
-         SharedPreferences preferences = getSharedPreferences("printer", Context.MODE_PRIVATE);
-         String mask = preferences.getString("mask", "");
-         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+     if (pt.getText().toString().equals("")){
+         Toast.makeText(getApplicationContext(), "DEBE INGRESAR UNA PATENTE", Toast.LENGTH_SHORT).show();
+     }else{
+         try{
+             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+             Date date = new Date();
+             String fecha = dateFormat.format(date);
 
-         if ((mBluetoothAdapter == null) || (!mBluetoothAdapter.isEnabled())) {
-             throw new Exception("Bluetooth adapter no esta funcionando o no esta habilitado");
+             SQLiteDatabase db = myDB.getWritableDatabase();
+
+            final Cursor cursor = db.rawQuery("SELECT id, fecha, hora, patente, m3, planta, chofer,username FROM registros_acopio WHERE LOWER(patente)='"+pt.getText().toString().toLowerCase()+"' AND fecha ='"+fecha+"' ORDER BY id asc", null);
+
+            if (cursor.moveToFirst()==true){
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try{
+                            SharedPreferences preferences = getSharedPreferences("printer", Context.MODE_PRIVATE);
+                            String mask = preferences.getString("mask", "");
+                            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+                            if ((mBluetoothAdapter == null) || (!mBluetoothAdapter.isEnabled())) {
+                                throw new Exception("Bluetooth adapter no esta funcionando o no esta habilitado");
+                            }
+
+                            mBluetoothDevice = mBluetoothAdapter.getRemoteDevice(mask);
+                            mBluetoothSocket = mBluetoothDevice.createRfcommSocketToServiceRecord(applicationUUID);
+                            mBluetoothAdapter.cancelDiscovery();
+                            mBluetoothSocket.connect();
+
+                            OutputStream os = mBluetoothSocket.getOutputStream();
+                            InputStream is = mBluetoothSocket.getInputStream();
+
+                            Handler mHandler =  new Handler(Looper.getMainLooper());
+
+                            int totalm3 = 0;
+
+                            for (int i = 0; i<=cursor.getCount(); cursor.moveToNext()){
+                                i = i+1;
+                                String fechaAcopio = cursor.getString(1);
+                                String horaAcopio = cursor.getString(2);
+                                String m3 = cursor.getString(4);
+                                String planta = cursor.getString(5);
+                                String chofer = cursor.getString(6);
+                                String usuario = cursor.getString(7);
+                                int m3vuelta = Integer.parseInt(m3);
+
+                                totalm3 = totalm3 + m3vuelta;
+
+                                if (i == 1){
+
+                                    String msg = " "+" "+" "+ " "+" "+" "+" "+" "+" "+" Aridos Santa Fe "+" "+"\n"+
+                                            " " + " "+" "+""+" "+" "+ " "+" "+" "+" "+" "+" "+" "+" "+pt.getText().toString().toUpperCase()+" "+" "+""+" "+"\n"+
+                                            " " +"\n"+
+                                            " " + "Fecha: "+fechaAcopio+"\n"+
+                                            " " + "Hora: "+horaAcopio+"\n"+
+                                            " " + "Cantidad M3: "+m3+"\n"+
+                                            " " + "Usuario: "+usuario+"\n"+
+                                            " " +"\n"+
+                                            " " + " "+" "+"--------------------------"+" "+" "+"\n"+
+                                            " " +"\n";
+                                    os.write(msg.getBytes());
+
+                                }
+                                else if (i>1 && i<=cursor.getCount()){
+
+
+                                    String msg2 =
+                                            " " + "Fecha: "+fechaAcopio+"\n"+
+                                                    " " + "Hora: "+horaAcopio+"\n"+
+                                                    " " + "Cantidad M3: "+m3+"\n"+
+                                                    " " + "Usuario: "+usuario+"\n"+
+                                                    " " +"\n"+
+                                                    " " + " "+" "+"--------------------------"+" "+" "+"\n"+
+                                                    " " +"\n";
+                                    os.write(msg2.getBytes());
+
+                                }if (i == cursor.getCount()){
+                                    String msg3 = " " + " "+" "+""+" "+" "+ " "+" "+" "+" "+" "+" "+" "+" Resumen: "+" "+" "+""+" "+"\n"+
+                                            " " + " "+" "+""+" "+" " +" "+" "+" "+""+" "+"\n"+
+                                            " " + "Chofer: "+chofer+"\n"+
+                                            " " + "Total de vueltas: "+i+"\n"+
+                                            " " + "Patente: "+pt.getText().toString().toUpperCase()+"\n"+
+                                            " " + "Total M3: "+totalm3+"\n"+
+                                            " " + "Planta: "+planta+"\n"+
+                                            " " +"\n"+
+                                            " " +"\n"+
+                                            " " +"\n"+
+                                            " " + "RUT:..........................." +"\n"+
+                                            " " +"\n"+
+                                            " " +"\n"+
+                                            " " + "Nombre:........................" +"\n"+
+                                            " " +"\n"+
+                                            " " +"\n"+
+                                            " " + "Firma:........................." +"\n"+
+                                            " " +"\n"+
+                                            " " + " "+" "+" Resumen acopio material "+" "+" "+"\n"+
+                                            " " + " "+" "+" "+"    Copia jefe planta"+" "+" "+"\n"+
+                                            " " +"\n"+
+                                            " " +"\n"+
+                                            " " +"\n";
+                                    os.write(msg3.getBytes());
+                                }
+
+                            }
+                            mBluetoothSocket.close();
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
+            }else{
+                Toast.makeText(getApplicationContext(), "LA PATENTE NO REGISTRA ACOPIOS", Toast.LENGTH_SHORT).show();
+            }
+         }catch (Exception e){
+             e.printStackTrace();
          }
-
-         mBluetoothDevice = mBluetoothAdapter.getRemoteDevice(mask);
-         mBluetoothSocket = mBluetoothDevice.createRfcommSocketToServiceRecord(applicationUUID);
-         mBluetoothAdapter.cancelDiscovery();
-         mBluetoothSocket.connect();
-
-         OutputStream os = mBluetoothSocket.getOutputStream();
-         InputStream is = mBluetoothSocket.getInputStream();
-
-         Handler mHandler =  new Handler(Looper.getMainLooper());
-
-         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-         Date date = new Date();
-         String fecha = dateFormat.format(date);
-
-         SQLiteDatabase db = myDB.getWritableDatabase();
-
-         Cursor cursor = db.rawQuery("SELECT id, fecha, hora, patente, m3, planta, chofer,username FROM registros_acopio WHERE patente ='"+patente+"' AND fecha ='"+fecha+"' ORDER BY id asc", null);
-
-         if (cursor.moveToFirst()){
-
-             int totalm3 = 0;
-
-             for (int i = 0; i<=cursor.getCount(); cursor.moveToNext()){
-                 i = i+1;
-                 String fechaAcopio = cursor.getString(1);
-                 String horaAcopio = cursor.getString(2);
-                 String m3 = cursor.getString(4);
-                 String planta = cursor.getString(5);
-                 String chofer = cursor.getString(6);
-                 String usuario = cursor.getString(7);
-                 int m3vuelta = Integer.parseInt(m3);
-
-                 totalm3 = totalm3 + m3vuelta;
-
-                 if (i == 1){
-
-                     String msg = " "+" "+" "+ " "+" "+" "+" "+" "+" "+" Aridos Santa Fe "+" "+"\n"+
-                             " " + " "+" "+""+" "+" "+ " "+" "+" "+" "+" "+" "+" "+" "+pt.getText().toString()+" "+" "+""+" "+"\n"+
-                             " " +"\n"+
-                             " " + "Fecha: "+fechaAcopio+"\n"+
-                             " " + "Hora: "+horaAcopio+"\n"+
-                             " " + "Cantidad M3: "+m3+"\n"+
-                             " " + "Usuario: "+usuario+"\n"+
-                             " " +"\n"+
-                             " " + " "+" "+"--------------------------"+" "+" "+"\n"+
-                             " " +"\n";
-                     os.write(msg.getBytes());
-
-                     }
-                     else if (i>1 && i<=cursor.getCount()){
-
-
-                         String msg2 =
-                                 " " + "Fecha: "+fechaAcopio+"\n"+
-                                 " " + "Hora: "+horaAcopio+"\n"+
-                                 " " + "Cantidad M3: "+m3+"\n"+
-                                 " " + "Usuario: "+usuario+"\n"+
-                                 " " +"\n"+
-                                 " " + " "+" "+"--------------------------"+" "+" "+"\n"+
-                                 " " +"\n";
-                         os.write(msg2.getBytes());
-
-                 }if (i == cursor.getCount()){
-                     String msg3 = " " + " "+" "+""+" "+" "+ " "+" "+" "+" "+" "+" "+" "+" Resumen: "+" "+" "+""+" "+"\n"+
-                             " " + " "+" "+""+" "+" " +" "+" "+" "+""+" "+"\n"+
-                             " " + "Chofer: "+chofer+"\n"+
-                             " " + "Total de vueltas: "+i+"\n"+
-                             " " + "Patente: "+pt.getText().toString()+"\n"+
-                             " " + "Total M3: "+totalm3+"\n"+
-                             " " + "Planta: "+planta+"\n"+
-                             " " +"\n"+
-                             " " +"\n"+
-                             " " +"\n"+
-                             " " + "RUT:..........................." +"\n"+
-                             " " +"\n"+
-                             " " +"\n"+
-                             " " + "Nombre:........................" +"\n"+
-                             " " +"\n"+
-                             " " +"\n"+
-                             " " + "Firma:........................." +"\n"+
-                             " " +"\n"+
-                             " " +"\n";
-                     os.write(msg3.getBytes());
-                 }
-
-             }
-             mBluetoothSocket.close();
-         }
-     }catch (Exception e) {
      }
+
  }
+
+ public void copiaChofer(){
+
+        if (pt.getText().toString().equals("")){
+            Toast.makeText(getApplicationContext(), "DEBE INGRESAR UNA PATENTE", Toast.LENGTH_SHORT).show();
+        }else{
+            try{
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                Date date = new Date();
+                String fecha = dateFormat.format(date);
+
+                SQLiteDatabase db = myDB.getWritableDatabase();
+
+                final Cursor cursor = db.rawQuery("SELECT id, fecha, hora, patente, m3, planta, chofer,username FROM registros_acopio WHERE LOWER(patente)='"+pt.getText().toString().toLowerCase()+"' AND fecha ='"+fecha+"' ORDER BY id asc", null);
+
+                if (cursor.moveToFirst()==true){
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try{
+                                SharedPreferences preferences = getSharedPreferences("printer", Context.MODE_PRIVATE);
+                                String mask = preferences.getString("mask", "");
+                                mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+                                if ((mBluetoothAdapter == null) || (!mBluetoothAdapter.isEnabled())) {
+                                    throw new Exception("Bluetooth adapter no esta funcionando o no esta habilitado");
+                                }
+
+                                mBluetoothDevice = mBluetoothAdapter.getRemoteDevice(mask);
+                                mBluetoothSocket = mBluetoothDevice.createRfcommSocketToServiceRecord(applicationUUID);
+                                mBluetoothAdapter.cancelDiscovery();
+                                mBluetoothSocket.connect();
+
+                                OutputStream os = mBluetoothSocket.getOutputStream();
+                                InputStream is = mBluetoothSocket.getInputStream();
+
+                                Handler mHandler =  new Handler(Looper.getMainLooper());
+
+                                int totalm3 = 0;
+
+                                for (int i = 0; i<=cursor.getCount(); cursor.moveToNext()){
+                                    i = i+1;
+                                    String fechaAcopio = cursor.getString(1);
+                                    String horaAcopio = cursor.getString(2);
+                                    String m3 = cursor.getString(4);
+                                    String planta = cursor.getString(5);
+                                    String chofer = cursor.getString(6);
+                                    String usuario = cursor.getString(7);
+                                    int m3vuelta = Integer.parseInt(m3);
+
+                                    totalm3 = totalm3 + m3vuelta;
+
+                                    if (i == 1){
+
+                                        String msg = " "+" "+" "+ " "+" "+" "+" "+" "+" "+" Aridos Santa Fe "+" "+"\n"+
+                                                " " + " "+" "+""+" "+" "+ " "+" "+" "+" "+" "+" "+" "+" "+pt.getText().toString().toUpperCase()+" "+" "+""+" "+"\n"+
+                                                " " +"\n"+
+                                                " " + "Fecha: "+fechaAcopio+"\n"+
+                                                " " + "Hora: "+horaAcopio+"\n"+
+                                                " " + "Cantidad M3: "+m3+"\n"+
+                                                " " + "Usuario: "+usuario+"\n"+
+                                                " " +"\n"+
+                                                " " + " "+" "+"--------------------------"+" "+" "+"\n"+
+                                                " " +"\n";
+                                        os.write(msg.getBytes());
+
+                                    }
+                                    else if (i>1 && i<=cursor.getCount()){
+
+
+                                        String msg2 =
+                                                " " + "Fecha: "+fechaAcopio+"\n"+
+                                                        " " + "Hora: "+horaAcopio+"\n"+
+                                                        " " + "Cantidad M3: "+m3+"\n"+
+                                                        " " + "Usuario: "+usuario+"\n"+
+                                                        " " +"\n"+
+                                                        " " + " "+" "+"--------------------------"+" "+" "+"\n"+
+                                                        " " +"\n";
+                                        os.write(msg2.getBytes());
+
+                                    }if (i == cursor.getCount()){
+                                        String msg3 = " " + " "+" "+""+" "+" "+ " "+" "+" "+" "+" "+" "+" "+" Resumen: "+" "+" "+""+" "+"\n"+
+                                                " " + " "+" "+""+" "+" " +" "+" "+" "+""+" "+"\n"+
+                                                " " + "Chofer: "+chofer+"\n"+
+                                                " " + "Total de vueltas: "+i+"\n"+
+                                                " " + "Patente: "+pt.getText().toString().toUpperCase()+"\n"+
+                                                " " + "Total M3: "+totalm3+"\n"+
+                                                " " + "Planta: "+planta+"\n"+
+                                                " " +"\n"+
+                                                " " +"\n"+
+                                                " " +"\n"+
+                                                " " + "RUT:..........................." +"\n"+
+                                                " " +"\n"+
+                                                " " +"\n"+
+                                                " " + "Nombre:........................" +"\n"+
+                                                " " +"\n"+
+                                                " " +"\n"+
+                                                " " + "Firma:........................." +"\n"+
+                                                " " +"\n"+
+                                                " " + " "+" "+" Resumen acopio material "+" "+" "+"\n"+
+                                                " " + " "+" "+" "+"       Copia chofer"+" "+" "+"\n"+
+                                                " " +"\n"+
+                                                " " +"\n"+
+                                                " " +"\n";
+                                        os.write(msg3.getBytes());
+                                    }
+
+                                }
+                                mBluetoothSocket.close();
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start();
+                }else{
+                    Toast.makeText(getApplicationContext(), "LA PATENTE NO REGISTRA ACOPIOS", Toast.LENGTH_SHORT).show();
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    public void copiapropietario(){
+
+        if (pt.getText().toString().equals("")){
+            Toast.makeText(getApplicationContext(), "DEBE INGRESAR UNA PATENTE", Toast.LENGTH_SHORT).show();
+        }else{
+            try{
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                Date date = new Date();
+                String fecha = dateFormat.format(date);
+
+                SQLiteDatabase db = myDB.getWritableDatabase();
+
+                final Cursor cursor = db.rawQuery("SELECT id, fecha, hora, patente, m3, planta, chofer,username FROM registros_acopio WHERE LOWER(patente)='"+pt.getText().toString().toLowerCase()+"' AND fecha ='"+fecha+"' ORDER BY id asc", null);
+
+                if (cursor.moveToFirst()==true){
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try{
+                                SharedPreferences preferences = getSharedPreferences("printer", Context.MODE_PRIVATE);
+                                String mask = preferences.getString("mask", "");
+                                mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+                                if ((mBluetoothAdapter == null) || (!mBluetoothAdapter.isEnabled())) {
+                                    throw new Exception("Bluetooth adapter no esta funcionando o no esta habilitado");
+                                }
+
+                                mBluetoothDevice = mBluetoothAdapter.getRemoteDevice(mask);
+                                mBluetoothSocket = mBluetoothDevice.createRfcommSocketToServiceRecord(applicationUUID);
+                                mBluetoothAdapter.cancelDiscovery();
+                                mBluetoothSocket.connect();
+
+                                OutputStream os = mBluetoothSocket.getOutputStream();
+                                InputStream is = mBluetoothSocket.getInputStream();
+
+                                Handler mHandler =  new Handler(Looper.getMainLooper());
+
+                                int totalm3 = 0;
+
+                                for (int i = 0; i<=cursor.getCount(); cursor.moveToNext()){
+                                    i = i+1;
+                                    String fechaAcopio = cursor.getString(1);
+                                    String horaAcopio = cursor.getString(2);
+                                    String m3 = cursor.getString(4);
+                                    String planta = cursor.getString(5);
+                                    String chofer = cursor.getString(6);
+                                    String usuario = cursor.getString(7);
+                                    int m3vuelta = Integer.parseInt(m3);
+
+                                    totalm3 = totalm3 + m3vuelta;
+
+                                    if (i == 1){
+
+                                        String msg = " "+" "+" "+ " "+" "+" "+" "+" "+" "+" Aridos Santa Fe "+" "+"\n"+
+                                                " " + " "+" "+""+" "+" "+ " "+" "+" "+" "+" "+" "+" "+" "+pt.getText().toString().toUpperCase()+" "+" "+""+" "+"\n"+
+                                                " " +"\n"+
+                                                " " + "Fecha: "+fechaAcopio+"\n"+
+                                                " " + "Hora: "+horaAcopio+"\n"+
+                                                " " + "Cantidad M3: "+m3+"\n"+
+                                                " " + "Usuario: "+usuario+"\n"+
+                                                " " +"\n"+
+                                                " " + " "+" "+"--------------------------"+" "+" "+"\n"+
+                                                " " +"\n";
+                                        os.write(msg.getBytes());
+
+                                    }
+                                    else if (i>1 && i<=cursor.getCount()){
+
+
+                                        String msg2 =
+                                                " " + "Fecha: "+fechaAcopio+"\n"+
+                                                        " " + "Hora: "+horaAcopio+"\n"+
+                                                        " " + "Cantidad M3: "+m3+"\n"+
+                                                        " " + "Usuario: "+usuario+"\n"+
+                                                        " " +"\n"+
+                                                        " " + " "+" "+"--------------------------"+" "+" "+"\n"+
+                                                        " " +"\n";
+                                        os.write(msg2.getBytes());
+
+                                    }if (i == cursor.getCount()){
+                                        String msg3 = " " + " "+" "+""+" "+" "+ " "+" "+" "+" "+" "+" "+" "+" Resumen: "+" "+" "+""+" "+"\n"+
+                                                " " + " "+" "+""+" "+" " +" "+" "+" "+""+" "+"\n"+
+                                                " " + "Chofer: "+chofer+"\n"+
+                                                " " + "Total de vueltas: "+i+"\n"+
+                                                " " + "Patente: "+pt.getText().toString().toUpperCase()+"\n"+
+                                                " " + "Total M3: "+totalm3+"\n"+
+                                                " " + "Planta: "+planta+"\n"+
+                                                " " +"\n"+
+                                                " " +"\n"+
+                                                " " +"\n"+
+                                                " " + "RUT:..........................." +"\n"+
+                                                " " +"\n"+
+                                                " " +"\n"+
+                                                " " + "Nombre:........................" +"\n"+
+                                                " " +"\n"+
+                                                " " +"\n"+
+                                                " " + "Firma:........................." +"\n"+
+                                                " " +"\n"+
+                                                " " + " "+" "+" Resumen acopio material "+" "+" "+"\n"+
+                                                " " + " "+" "+" "+"  Copia propietario camion"+" "+" "+"\n"+
+                                                " " +"\n"+
+                                                " " +"\n"+
+                                                " " +"\n";
+                                        os.write(msg3.getBytes());
+                                    }
+
+                                }
+                                mBluetoothSocket.close();
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start();
+                }else{
+                    Toast.makeText(getApplicationContext(), "LA PATENTE NO REGISTRA ACOPIOS", Toast.LENGTH_SHORT).show();
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+
+
 }

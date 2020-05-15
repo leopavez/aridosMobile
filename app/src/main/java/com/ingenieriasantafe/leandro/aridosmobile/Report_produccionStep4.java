@@ -139,11 +139,11 @@ public class Report_produccionStep4 extends AppCompatActivity {
                                         String msg = " "+" "+" "+" "+" "+" "+" "+"Aridos Santa Fe "+" "+" "+" "+"\n"+
                                                 " " + " "+" "+""+" "+" " +" "+" "+" "+""+" "+"\n"+
                                                 " " +"\n"+
-                                                " " + "F/H: "+fecha+" "+""+hora+"\n"+
-                                                " " + "Patente: "+patente+"\n"+
+                                                " " + "Fecha: "+fecha+" "+""+hora+"\n"+
+                                                " " + "Patente: "+patente.toUpperCase()+"\n"+
                                                 " " + "HM: "+horasmaquina+"\n"+
                                                 " " + "Combustible: "+combustible+"\n"+
-                                                " " + "Operador: "+operador+"\n"+
+                                                " " + "Operador: "+operador.toUpperCase()+"\n"+
                                                 " " + "Usuario: "+username+"\n"+
                                                 " " + "Planta: "+planta+"\n"+
                                                 " " + "Observaciones: "+"\n"+
@@ -171,10 +171,10 @@ public class Report_produccionStep4 extends AppCompatActivity {
                                             " " + " "+" "+""+" "+" " +" "+" "+" "+""+" "+"\n"+
                                             " " +"\n"+
                                             " " + "F/H: "+fecha+" "+""+hora+"\n"+
-                                            " " + "Patente: "+patente+"\n"+
+                                            " " + "Patente: "+patente.toUpperCase()+"\n"+
                                             " " + "HM: "+horasmaquina+"\n"+
                                             " " + "Combustible: "+combustible+"\n"+
-                                            " " + "Operador: "+operador+"\n"+
+                                            " " + "Operador: "+operador.toUpperCase()+"\n"+
                                             " " + "Usuario: "+username+"\n"+
                                             " " + "Planta: "+planta+"\n"+
                                             " " + "Observaciones: "+"\n"+

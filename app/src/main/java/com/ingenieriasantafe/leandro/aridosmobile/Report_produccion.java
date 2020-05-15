@@ -1,6 +1,8 @@
 package com.ingenieriasantafe.leandro.aridosmobile;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +26,8 @@ public class Report_produccion extends AppCompatActivity {
     TextInputEditText horasmaquina;
     TextInputEditText combustible;
 
+    DatabaseHelper myDB;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.reportproduccion);
@@ -32,28 +36,34 @@ public class Report_produccion extends AppCompatActivity {
         siguiente = (Button) findViewById(R.id.btnsiguiente1);
         horasmaquina = (TextInputEditText) findViewById(R.id.txthorasmaquina);
         combustible = (TextInputEditText)findViewById(R.id.txtCombustible);
+        myDB = new DatabaseHelper(this);
 
         siguiente.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                SQLiteDatabase db = myDB.getWritableDatabase();
 
-                if (pt.getText().toString().equals("") || horasmaquina.getText().toString().equals("") || ope.getText().toString().equals("")){
+                Cursor cursor = db.rawQuery("SELECT id FROM vehiculos WHERE LOWER(patente) ='"+pt.getText().toString().toLowerCase()+"'",null);
 
-                    Toast.makeText(getApplicationContext(),"Debes llenar todos los campos",Toast.LENGTH_SHORT).show();
+                if (cursor.moveToFirst()==true){
+                    if (pt.getText().toString().equals("") || horasmaquina.getText().toString().equals("") || ope.getText().toString().equals("")){
 
+                        Toast.makeText(getApplicationContext(),"Debes llenar todos los campos",Toast.LENGTH_SHORT).show();
+
+                    }else{
+                        Intent intent = new Intent(Report_produccion.this, Report_produccionStep2.class);
+                        intent.putExtra("patente",pt.getText().toString());
+                        intent.putExtra("horasmaquina", horasmaquina.getText().toString());
+                        intent.putExtra("combustible",combustible.getText().toString());
+                        intent.putExtra("operador",ope.getText().toString());
+                        startActivity(intent);
+                        overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_left);
+                        finish();
+
+                    }
                 }else{
-                    Intent intent = new Intent(Report_produccion.this, Report_produccionStep2.class);
-                    intent.putExtra("patente",pt.getText().toString());
-                    intent.putExtra("horasmaquina", horasmaquina.getText().toString());
-                    intent.putExtra("combustible",combustible.getText().toString());
-                    intent.putExtra("operador",ope.getText().toString());
-                    startActivity(intent);
-                    overridePendingTransition(R.anim.slide_in_right,R.anim.slide_out_left);
-                    finish();
-
+                    Toast.makeText(Report_produccion.this, "La patente no esta registrada en el sistema", Toast.LENGTH_SHORT).show();
                 }
-
-
             }
         });
 

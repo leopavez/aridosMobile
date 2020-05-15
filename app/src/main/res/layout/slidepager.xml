@@ -7,8 +7,8 @@
 
     <ImageView
         android:id="@+id/slide_image"
-        android:layout_width="250dp"
-        android:layout_height="250dp"
+        android:layout_width="180dp"
+        android:layout_height="180dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="40dp"
@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="304dp"
+        android:layout_marginBottom="269dp"
         android:text="INSTRUCCIONES"
         android:textColor="@color/white"
         android:textSize="20sp"
@@ -33,10 +33,10 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginLeft="30dp"
-        android:layout_marginBottom="150dp"
+        android:layout_marginBottom="101dp"
         android:padding="35dp"
-        android:textSize="16sp"
-        android:textColor="@color/white"
         android:text="A continuación te presentaremos una pequeña ayuda para usar correctamente esta aplicación"
-        android:textAlignment="center" />
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="16sp" />
 </RelativeLayout>

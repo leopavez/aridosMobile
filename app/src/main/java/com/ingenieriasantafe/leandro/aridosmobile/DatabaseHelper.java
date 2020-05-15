@@ -7,8 +7,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -41,6 +44,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String MARCA = "marca";
     public static final String M3 = "m3";
 
+    //UNEGOCIOS
+    public static final String ID_UNEGOCIOS="id";
+    public static final String NOMBRE_UNE = "nombre";
+    public static final String ESTADO_UNE ="estado";
 
     //REGISTROS - ACOPIO
 
@@ -115,50 +122,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     final String CREAR_TABLA_USUARIOS = "CREATE TABLE usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT,log_id TEXT unique, nombre TEXT, apellido TEXT, username TEXT, password TEXT, estado TEXT)";
     final String CREAR_TABLA_LISTADO_PLANTAS = "CREATE TABLE plantas_list (id TEXT unique, nombre TEXT, ubicacion TEXT)";
     final String CREAR_TABLA_VEHICULOS = "CREATE TABLE vehiculos (id TEXT unique, patente TEXT unique, tipo TEXT, propietario TEXT, marca TEXT, m3 TEXT)";
-    final String CREAR_TABLA_REGISTROS_ACOPIO = "CREATE TABLE registros_acopio (id INTEGER PRIMARY KEY AUTOINCREMENT, patente TEXT, m3 TEXT, planta TEXT, chofer TEXT,username TEXT, fecha TEXT, hora TEXT, estado TEXT, procedencia TEXT)";
-    final String CREAR_TABLA_REGISTROS_PRODUCCION = "CREATE TABLE registros_produccion (id INTEGER PRIMARY KEY AUTOINCREMENT, patente TEXT, horasmaquina TEXT, nam TEXT,nah TEXT," +
+    final String CREAR_TABLA_REGISTROS_ACOPIO = "CREATE TABLE registros_acopio (id INTEGER PRIMARY KEY AUTOINCREMENT unique, patente TEXT, m3 TEXT, planta TEXT, chofer TEXT,username TEXT, fecha TEXT, hora TEXT, estado TEXT, procedencia TEXT)";
+    final String CREAR_TABLA_REGISTROS_PRODUCCION = "CREATE TABLE registros_produccion (id INTEGER PRIMARY KEY AUTOINCREMENT unique, patente TEXT, horasmaquina TEXT, nam TEXT,nah TEXT," +
             "nat TEXT, se TEXT, otras TEXT, botiquin TEXT, extintor TEXT, ar TEXT, baliza TEXT, rt TEXT, so TEXT, pc TEXT, fecha TEXT, hora TEXT, username TEXT, planta TEXT, combustible TEXT," +
             "operador TEXT, estado TEXT)";
     final String CREAR_TABLA_OPERADORES = "CREATE TABLE operadores(id INTEGER PRIMARY KEY AUTOINCREMENT, id_web TEXT,  nombre TEXT)";
-    final String CREAR_TABLA_PRODUCCION_PLANTA = "CREATE TABLE prod_planta(id INTEGER PRIMARY KEY AUTOINCREMENT, tipomaterial TEXT, m3 TEXT, planta TEXT, procedencia TEXT, username TEXT,fecha TEXT, hora TEXT, estado TEXT)";
-    final String CREAR_TABLA_REGISTROS_SALIDA = "CREATE TABLE registros_salida (id INTEGER PRIMARY KEY AUTOINCREMENT, patente TEXT, m3 TEXT, tipomaterial TEXT, planta TEXT, chofer TEXT,username TEXT, fecha TEXT, hora TEXT, estado TEXT, procedencia TEXT, destino TEXT)";
-
+    final String CREAR_TABLA_PRODUCCION_PLANTA = "CREATE TABLE prod_planta(id INTEGER PRIMARY KEY AUTOINCREMENT unique, tipomaterial TEXT, m3 TEXT, planta TEXT, procedencia TEXT, username TEXT,fecha TEXT, hora TEXT, estado TEXT)";
+    final String CREAR_TABLA_REGISTROS_SALIDA = "CREATE TABLE registros_salida (id INTEGER PRIMARY KEY AUTOINCREMENT unique, patente TEXT, m3 TEXT, tipomaterial TEXT, planta TEXT, chofer TEXT,username TEXT, fecha TEXT, hora TEXT, estado TEXT, procedencia TEXT, destino TEXT)";
+    final String CREAR_TABLA_UNEGOCIOS ="CREATE TABLE unegocios (id TEXT unique, nombre TEXT, estado TEXT)";
     public DatabaseHelper(Context context) {
-        super(context, DATABASE_NAME, null,8);
+        super(context, DATABASE_NAME, null,11);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db){
-        db.execSQL(CREAR_TABLA_USUARIOS);
         db.execSQL(CREAR_TABLA_LISTADO_PLANTAS);
+        db.execSQL(CREAR_TABLA_USUARIOS);
         db.execSQL(CREAR_TABLA_VEHICULOS);
         db.execSQL(CREAR_TABLA_REGISTROS_ACOPIO);
         db.execSQL(CREAR_TABLA_REGISTROS_PRODUCCION);
         db.execSQL(CREAR_TABLA_OPERADORES);
         db.execSQL(CREAR_TABLA_PRODUCCION_PLANTA);
         db.execSQL(CREAR_TABLA_REGISTROS_SALIDA);
+        db.execSQL(CREAR_TABLA_UNEGOCIOS);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS usuarios");
-        db.execSQL("DROP TABLE IF EXISTS planta");
-        db.execSQL("DROP TABLE IF EXISTS plantas_list");
-        db.execSQL("DROP TABLE IF EXISTS vehiculos");
-        db.execSQL("DROP TABLE IF EXISTS registros_acopio");
-        db.execSQL("DROP TABLE IF EXISTS registros_produccion");
-        db.execSQL("DROP TABLE IF EXISTS operadores");
-        db.execSQL("DROP TABLE IF EXISTS prod_planta");
-        db.execSQL("DROP TABLE IF EXISTS registros_salida");
-
-        db.execSQL(CREAR_TABLA_USUARIOS);
-        db.execSQL(CREAR_TABLA_LISTADO_PLANTAS);
-        db.execSQL(CREAR_TABLA_VEHICULOS);
-        db.execSQL(CREAR_TABLA_REGISTROS_ACOPIO);
-        db.execSQL(CREAR_TABLA_REGISTROS_PRODUCCION);
-        db.execSQL(CREAR_TABLA_OPERADORES);
-        db.execSQL(CREAR_TABLA_PRODUCCION_PLANTA);
-        db.execSQL(CREAR_TABLA_REGISTROS_SALIDA);
+        db.execSQL(CREAR_TABLA_UNEGOCIOS);
     }
 
     public boolean RegistroUsuarios(String log_id, String nombre, String apellido, String username, String password, String estado){
@@ -177,6 +168,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             contentValues.put(ESTADO, estado);
 
             db.insert("usuarios",null,contentValues);
+            db.close();
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean RegistroUnegocios(String id, String nombre, String estado){
+        try{
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues contentValues = new ContentValues();
+
+            contentValues.put(ID_UNEGOCIOS,id);
+            contentValues.put(NOMBRE_UNE, nombre);
+            contentValues.put(ESTADO_UNE,estado);
+
+            db.insert("unegocios",null,contentValues);
             db.close();
             return true;
         }catch (Exception e){

@@ -2,8 +2,10 @@ package com.ingenieriasantafe.leandro.aridosmobile;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,6 +13,8 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -21,7 +25,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Set;
+import java.util.UUID;
 
 public class bluetooth_list extends AppCompatActivity {
 
@@ -29,6 +36,10 @@ public class bluetooth_list extends AppCompatActivity {
     protected static final String TAG = "TAG";
     private BluetoothAdapter mBluetoothAdapter;
     private ArrayAdapter<String> mPairedDevicesArrayAdapter;
+    private UUID applicationUUID = UUID
+            .fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private BluetoothSocket mBluetoothSocket;
+    BluetoothDevice mBluetoothDevice;
 
     @Override
     protected void onCreate( Bundle savedInstanceState) {
@@ -83,10 +94,50 @@ public class bluetooth_list extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 MaskPrinter(address);
-                Toast.makeText(getApplicationContext(),"Impresora Configurada",Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(bluetooth_list.this,AjustesParametros.class);
-                startActivity(intent);
-                finish();
+                Toast.makeText(getApplicationContext(), "Impresora Configurada", Toast.LENGTH_SHORT).show();
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            try{
+
+                                SharedPreferences preferences = getSharedPreferences("printer", Context.MODE_PRIVATE);
+                                String mask = preferences.getString("mask", "");
+                                mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+                                if ((mBluetoothAdapter == null) || (!mBluetoothAdapter.isEnabled())) {
+                                    throw new Exception("Bluetooth adapter no esta funcionando o no esta habilitado");
+                                }
+
+                                mBluetoothDevice = mBluetoothAdapter.getRemoteDevice(mask);
+                                mBluetoothSocket = mBluetoothDevice.createRfcommSocketToServiceRecord(applicationUUID);
+                                mBluetoothAdapter.cancelDiscovery();
+                                mBluetoothSocket.connect();
+
+                                OutputStream os = mBluetoothSocket.getOutputStream();
+                                InputStream is = mBluetoothSocket.getInputStream();
+
+                                Handler mHandler = new Handler(Looper.getMainLooper());
+
+
+                                String msg = " "+" "+" "+ " "+" "+"IMPRESORA CONFIGURADA"+" "+"\n"+
+                                        " " +"\n"+
+                                        " " +"\n"+
+                                        " " +"\n";
+                                os.write(msg.getBytes());
+                                mBluetoothSocket.close();
+
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }).start();
+
+                    Intent intent = new Intent(bluetooth_list.this, AjustesParametros.class);
+                    startActivity(intent);
+                    finish();
 
             }
         });

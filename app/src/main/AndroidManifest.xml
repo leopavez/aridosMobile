@@ -13,9 +13,9 @@
     <application
         android:allowBackup="true"
         android:usesCleartextTraffic="true"
-        android:icon="@drawable/logoaridos"
+        android:icon="@drawable/transporte"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/logoaridos"
+        android:roundIcon="@drawable/transporte"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 

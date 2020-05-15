@@ -30,20 +30,35 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class Ajustes extends AppCompatActivity implements View.OnClickListener{
 
-    private CardView ajustesgeneralesCard,actualizarpatentes,ajustesParametros;
+    private CardView ajustesgeneralesCard,actualizarpatentes,ajustesParametros, limpiarDatos;
 
     private RequestQueue mRequestQueue;
     private StringRequest mStringRequest;
+
+
+
+    ArrayList<Registro_acopio> listaregistrosacopio;
+    ArrayList<Registro_salida> listaregistrosalida;
+    ArrayList<Registro_produccion_patente> listaregistroproduccionpatente;
+    ArrayList<Registro_produccion_planta>listaregistroproduccionplanta;
+    Registro_acopio reg_acopio = new Registro_acopio();
+    Registro_salida reg_salida = new Registro_salida();
+    Registro_produccion_planta reg_prod = new Registro_produccion_planta();
+    Registro_produccion_patente reg_prod_patente = new Registro_produccion_patente();
 
     DatabaseHelper myDB;
     private static final String TAG = Ajustes.class.getName();
     public static final String APIVEHICULOS = "http://santafeinversiones.org/api/vehiculos";
     public static final String APIPLANTAS = "http://santafeinversiones.org/api/plantas";
     public static final String APIOPERADORES = "http://santafeinversiones.org/api/aridos/operadores";
+    public static final String APIUnegociosAridos = "http://santafeinversiones.org/api/aridos/all/unegocios";
 
     ArrayList<String> plantas;
 
@@ -58,6 +73,7 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
         ajustesgeneralesCard = (CardView)findViewById(R.id.ajustesgeneralesCard);
         ajustesgeneralesCard.setOnClickListener(this);
         actualizarpatentes = (CardView) findViewById(R.id.actualizacionpatentesCard);
+        limpiarDatos = (CardView)findViewById(R.id.limpiardatos);
         progressDialog = new ProgressDialog(Ajustes.this);
         actualizarpatentes.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -83,6 +99,8 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
                                     DescargadePatentes();
                                 }else if(i==10){
                                     DescargaOperadores();
+                                }else if(i==15){
+                                    DescargaUnegocios();
                                 }
                             }
                             Thread.sleep(10000);
@@ -105,6 +123,130 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
         plantas = new ArrayList<>();
         myDB = new DatabaseHelper(this);
 
+        limpiarDatos.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                progressDialog.setTitle("Limpiando la aplicacion");
+                progressDialog.setMessage("Eliminando datos enviados......");
+                progressDialog.setProgressStyle(progressDialog.STYLE_SPINNER);
+                progressDialog.setMax(100);
+                progressDialog.show();
+                progressDialog.setCancelable(false);
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        try{
+
+
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                            Date date = new Date();
+                            String fechaactual = dateFormat.format(date);
+
+                            SQLiteDatabase db = myDB.getWritableDatabase();
+                            String estado = "ENVIADO";
+                            listaregistrosacopio = new ArrayList<Registro_acopio>();
+                            listaregistroproduccionplanta = new ArrayList<Registro_produccion_planta>();
+                            listaregistroproduccionpatente = new ArrayList<Registro_produccion_patente>();
+                            listaregistrosalida = new ArrayList<Registro_salida>();
+
+                            Cursor cursor = db.rawQuery("SELECT id, fecha FROM registros_acopio WHERE estado='" + estado + "'", null);
+                            Cursor cursor1 = db.rawQuery("SELECT id, fecha FROM prod_planta WHERE estado='" + estado + "'", null);
+                            Cursor cursor2 = db.rawQuery("SELECT id, fecha FROM registros_produccion WHERE estado='" + estado + "'", null);
+                            Cursor cursor3 = db.rawQuery("SELECT id, fecha FROM registros_salida WHERE estado='" + estado + "'", null);
+
+
+                            //ACOPIO
+                            while (cursor.moveToNext()) {
+
+                                String fecha = cursor.getString(1);
+
+                                if(fechaactual.equals(fecha)){
+                                }else{
+                                    reg_acopio = new Registro_acopio();
+                                    reg_acopio.setId(cursor.getInt(0));
+                                    listaregistrosacopio.add(reg_acopio);
+                                }
+                            }
+                            for (int i = 0; i < listaregistrosacopio.size(); i++) {
+
+                                db.execSQL("DELETE FROM registros_acopio WHERE id=" + listaregistrosacopio.get(i).getId() + "");
+                                Log.i("ACOPIO","ELIMINADO"+listaregistrosacopio.get(i).getId());
+                            }
+                            //PRODUCCION PLANTA
+                            while (cursor1.moveToNext()) {
+
+                                String fecha = cursor1.getString(1);
+                                if (fechaactual.equals(fecha)){
+                                }else{
+                                    reg_prod = new Registro_produccion_planta();
+                                    reg_prod.setId(cursor1.getInt(0));
+                                    listaregistroproduccionplanta.add(reg_prod);
+                                }
+                            }
+                            for (int i = 0; i < listaregistroproduccionplanta.size(); i++) {
+
+                                db.execSQL("DELETE FROM prod_planta WHERE id=" + listaregistroproduccionplanta.get(i).getId() + "");
+                                Log.i("PPLANTA","ELIMINADO"+listaregistroproduccionplanta.get(i).getId());
+                            }
+                            //PRODUCCION X PATENTE
+                            while (cursor2.moveToNext()) {
+
+                                String fecha = cursor2.getString(1);
+
+                                if (fechaactual.equals(fecha)){
+                                }else{
+                                    reg_prod_patente = new Registro_produccion_patente();
+                                    reg_prod_patente.setId(cursor2.getInt(0));
+                                    listaregistroproduccionpatente.add(reg_prod_patente);
+                                }
+                            }
+                            for (int i = 0; i < listaregistroproduccionpatente.size(); i++) {
+
+                                db.execSQL("DELETE FROM registros_produccion WHERE id=" + listaregistroproduccionpatente.get(i).getId() + "");
+                                Log.i("PPATENTE","ELIMINADO"+listaregistroproduccionpatente.get(i).getId());
+                            }
+                            //SALIDA DE MATERIAL
+                            while (cursor3.moveToNext()) {
+
+                                String fecha = cursor3.getString(1);
+
+                                if (fechaactual.equals(fecha)){
+                                }else{
+                                    reg_salida = new Registro_salida();
+                                    reg_salida.setId(cursor3.getInt(0));
+                                    listaregistrosalida.add(reg_salida);
+                                }
+                            }
+                            for (int i = 0; i < listaregistrosalida.size(); i++) {
+
+                                db.execSQL("DELETE FROM registros_salida WHERE id=" + listaregistrosalida.get(i).getId() + "");
+                                Log.i("SALIDA","ELIMINADO"+listaregistrosalida.get(i).getId());
+                            }
+
+
+
+
+                            Thread.sleep(5000);
+                            progressDialog.dismiss();
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getApplicationContext(),"Limpieza completada",Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+
+                    }
+                }).start();
+            }
+        });
 
     }
 
@@ -303,6 +445,74 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
         });
         mRequestQueue.add(mStringRequest);
     }
+
+
+
+
+    private void DescargaUnegocios(){
+        mRequestQueue = Volley.newRequestQueue(this);
+        mStringRequest = new StringRequest(Request.Method.GET, APIUnegociosAridos, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+
+                try {
+                    String json;
+
+                    Log.i("TaaaAG",response);
+                    json = response.toString();
+                    JSONArray jsonArray = null;
+                    jsonArray = new JSONArray(json);
+                    Unegocios unegocios = new Unegocios();
+
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+                        unegocios.id = jsonObject.getString("id");
+                        unegocios.nombre = jsonObject.getString("nombre");
+                        unegocios.estado = jsonObject.getString("estado");
+
+                        SQLiteDatabase db = myDB.getWritableDatabase();
+
+                        Cursor cursor = db.rawQuery("SELECT id, nombre, estado FROM unegocios WHERE id ='"+unegocios.id+"'",null);
+
+                        if (cursor.getCount() <=0){
+                            //NO SE ENCUENTRA LA UNEGOCIO Y SE REGISTRA
+                            myDB.RegistroUnegocios(unegocios.id,unegocios.nombre,unegocios.estado);
+
+                        }else{
+                            if (cursor.moveToFirst() == true){
+                                String id = cursor.getString(0);
+                                String nombre = cursor.getString(1);
+                                if (unegocios.estado.toString().equals("INACTIVO")){
+
+                                    db.execSQL("DELETE FROM unegocios WHERE id ='"+unegocios.id+"'");
+
+                                }else{
+                                    if(id != unegocios.id){
+                                        db.execSQL("UPDATE unegocios SET id='"+unegocios.id+"' WHERE id='"+unegocios.id+"'");
+                                    }
+                                    if(nombre != unegocios.nombre){
+                                        db.execSQL("UPDATE unegocios SET nombre='"+unegocios.nombre+"' WHERE id='"+unegocios.id+"'");
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+        mRequestQueue.add(mStringRequest);
+    }
+
 
 
 
