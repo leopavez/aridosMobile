@@ -1,5 +1,6 @@
 package com.ingenieriasantafe.leandro.aridosmobile;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -22,9 +23,11 @@ public class Report_produccion extends AppCompatActivity {
 
 
     private AutoCompleteTextView pt, ope;
+    private static final int REQUEST_ENABLE_BT = 2;
     Button siguiente;
     TextInputEditText horasmaquina;
     TextInputEditText combustible;
+    BluetoothAdapter mBluetoothAdapter;
 
     DatabaseHelper myDB;
 
@@ -37,6 +40,14 @@ public class Report_produccion extends AppCompatActivity {
         horasmaquina = (TextInputEditText) findViewById(R.id.txthorasmaquina);
         combustible = (TextInputEditText)findViewById(R.id.txtCombustible);
         myDB = new DatabaseHelper(this);
+
+        //BLUETOOTH
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
 
         siguiente.setOnClickListener(new View.OnClickListener() {
             @Override

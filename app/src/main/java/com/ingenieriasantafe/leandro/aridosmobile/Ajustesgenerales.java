@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class Ajustesgenerales extends AppCompatActivity {
@@ -16,6 +17,7 @@ public class Ajustesgenerales extends AppCompatActivity {
     Switch voucher;
 
     EditText cantidadVouchertxt;
+    TextView maximoacumulados;
     Button GuardarNVoucher;
 
     @Override
@@ -27,6 +29,7 @@ public class Ajustesgenerales extends AppCompatActivity {
         GuardarNVoucher = (Button)findViewById(R.id.btnguardarnvoucher);
         EstadoVoucher();
         AsignarCantidadVoucher();
+        MaximoAcumulados();
         voucher.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -58,6 +61,15 @@ public class Ajustesgenerales extends AppCompatActivity {
 
     }
 
+    private void MaximoAcumulados(){
+
+        maximoacumulados = (TextView)findViewById(R.id.txtmaxacumulados);
+        SharedPreferences preferences = getSharedPreferences("maxacumulados", Context.MODE_PRIVATE);
+        String maxacumulados = preferences.getString("max","SIN MAXIMO");
+
+        maximoacumulados.setText("Se notificara al alcanzar: "+maxacumulados+" datos acumulados");
+
+    }
     private void EstadoVoucher(){
         SharedPreferences preferences = getSharedPreferences("Voucher", Context.MODE_PRIVATE);
 

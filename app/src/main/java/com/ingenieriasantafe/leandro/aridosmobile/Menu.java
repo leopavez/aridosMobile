@@ -13,6 +13,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.util.Log;
@@ -66,6 +68,7 @@ public class Menu extends AppCompatActivity implements View.OnClickListener {
     public static final String APIEnvioRegistrosProduccionPlanta = "http://santafeinversiones.org/api/aridos/produccion/xplanta";
     public static final String APIEnvioRegistrosProduccionPatente = "http://santafeinversiones.org/api/aridos/produccion/xpatente";
     public static final String APIEnvioRegistrosSalida = "http://santafeinversiones.org/api/aridos/registros/salida";
+    public static final String APIEnvioNotificacionAcumulados="http://new.santafeinversiones.org/api/aridos-app/mensaje";
 
     private RequestQueue mRequestQueue;
     private StringRequest mStringRequest;
@@ -214,7 +217,8 @@ public class Menu extends AppCompatActivity implements View.OnClickListener {
             EnvioDatosProduccionPlanta();
             EnvioDatosProduccionXPatente();
             EnviodatosSalida();
-            Thread.sleep(1800000);
+            EnvionotificacionMaximoAcumulado();
+            Thread.sleep(1200000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -235,6 +239,87 @@ public class Menu extends AppCompatActivity implements View.OnClickListener {
         }
     }
 
+    private void EnvionotificacionMaximoAcumulado(){
+        SQLiteDatabase db = myDB.getReadableDatabase();
+
+        String estado = "PENDIENTE";
+
+        Cursor acopio = db.rawQuery("SELECT id, patente, m3, planta, chofer, fecha, hora, username,procedencia FROM registros_acopio WHERE estado='" + estado + "'", null);
+        Cursor produccion_patente = db.rawQuery("SELECT id, patente, horasmaquina, nam, nah, nat, se, otras, botiquin, extintor, ar, baliza, rt, so, pc, fecha, hora, username, planta, combustible," +
+                "operador FROM registros_produccion WHERE estado='" + estado + "'", null);
+        Cursor produccion_planta = db.rawQuery("SELECT id, tipomaterial, m3, procedencia, planta, username, fecha, hora FROM prod_planta WHERE estado='" + estado + "'", null);
+        Cursor salida = db.rawQuery("SELECT id, patente, m3, planta, chofer, fecha, hora, username,procedencia,tipomaterial,destino FROM registros_salida WHERE estado='" + estado + "'", null);
+
+        int countregistroacopio = acopio.getCount();
+        int countregistroproduccionpatente = produccion_patente.getCount();
+        int countregistroproduccionplanta = produccion_planta.getCount();
+        int countregistrosalida = salida.getCount();
+
+        final int datos = (countregistroacopio+countregistroproduccionpatente+countregistroproduccionplanta+countregistrosalida);
+
+        SharedPreferences preferences = getSharedPreferences("maxacumulados", Context.MODE_PRIVATE);
+        String maxdatosacumulados = preferences.getString("max", "SIN MAXIMO");
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        SimpleDateFormat horaformat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+        Date date = new Date();
+        String fecha = dateFormat.format(date);
+        String hora = horaformat.format(date);
+        SharedPreferences preferences1 = getSharedPreferences("plantaApp", Context.MODE_PRIVATE);
+        String planta = preferences1.getString("NAME_PLANTA", "");
+
+        if (maxdatosacumulados.equals("SIN MAXIMO")){
+
+        }else if (datos>=Integer.parseInt(maxdatosacumulados)){
+
+
+            //NOTIFICACION ANDROID
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1")
+                    .setSmallIcon(R.drawable.transporte)
+                    .setContentTitle("DATOS ACUMULADOS")
+                    .setContentText("Por favor sincroniza los datos acumulados")
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+            notificationManager.notify(1, builder.build());
+
+            final RequestParams params = new RequestParams();
+            params.put("planta",planta);
+            params.put("mensaje","Porfavor contacta al operador del P.O.S para que sincronice los datos acumulados");
+            params.put("numerodatos",datos);
+            params.put("fecha",fecha);
+            params.put("hora",hora);
+
+            Handler handler = new Handler(Looper.getMainLooper());
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+
+                    AsyncHttpClient client = new AsyncHttpClient();
+                    client.setMaxRetriesAndTimeout(0,1500);
+                    client.post(APIEnvioNotificacionAcumulados, params, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                            if (statusCode == 200){
+                                String response = new String(responseBody).toUpperCase();
+                                Log.i("TAG", "ENVIO OK " + response);
+                            }
+                        }
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                            Log.i("REQUEST FAIL",""+error.toString());
+                        }
+                    });
+
+                }
+            };
+            handler.post(runnable);
+
+        }else{
+            Log.i("DATOS ACUMULADOS", "NO SE ALCANZA LA CANTIDAD DE DATOS");
+        }
+    }
 
     private void EnvioDatosProduccionXPatente() {
         SQLiteDatabase db = myDB.getReadableDatabase();

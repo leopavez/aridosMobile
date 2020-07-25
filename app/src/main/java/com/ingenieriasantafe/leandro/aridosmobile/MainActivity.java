@@ -64,6 +64,7 @@ private InputValidation inputValidation;
 
 public static final String APIUsuarios = "http://santafeinversiones.org/api/aridos/users";
 public static final String APIUnegociosAridos = "http://santafeinversiones.org/api/aridos/all/unegocios";
+public static final String APINumeroMaxAcumulados = "http://new.santafeinversiones.org/api/aridos-app/config/numerodatos";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,8 +72,9 @@ public static final String APIUnegociosAridos = "http://santafeinversiones.org/a
         setContentView(R.layout.activity_main);
         lusers = (TextInputLayout) findViewById(R.id.textinputLayoutusers);
         lpass = (TextInputLayout) findViewById(R.id.textInputLayoutpass);
-        this.DescargaUsuarios();
-        this.DescargaUnegocios();
+        DescargaUsuarios();
+        DescargaUnegocios();
+        NumeroMaxAcumulados();
         usuario = (TextInputEditText) findViewById(R.id.txtusuario);
         password = (TextInputEditText) findViewById(R.id.txtpassword);
         ingresar = (Button) findViewById(R.id.btninicio);
@@ -114,6 +116,35 @@ public static final String APIUnegociosAridos = "http://santafeinversiones.org/a
         } else{
             Toast.makeText(this, "Usuario o password incorrectos", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void NumeroMaxAcumulados(){
+    mRequestQueue = Volley.newRequestQueue(this);
+    mStringRequest = new StringRequest(Request.Method.GET, APINumeroMaxAcumulados, new Response.Listener<String>() {
+        @Override
+        public void onResponse(String response) {
+
+            try{
+                String json;
+                Log.i("MaxACUMULADO",response);
+                json = response.toString();
+                SharedPreferences preferences = getSharedPreferences("maxacumulados", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor =preferences.edit();
+                editor.putString("max", json);
+                editor.commit();
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        }
+    }, new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+
+        }
+    });
+    mRequestQueue.add(mStringRequest);
     }
 
     private void DescargaUsuarios(){

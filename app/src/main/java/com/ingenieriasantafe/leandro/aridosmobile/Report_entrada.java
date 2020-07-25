@@ -64,6 +64,15 @@ public class Report_entrada extends AppCompatActivity {
         procedencia = (EditText)findViewById(R.id.txtprocedencia);
         EstadoVoucherImp();
 
+        //BLUETOOTH
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
+
+
         progressDialog = new ProgressDialog(Report_entrada.this);
         registro.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -124,7 +133,8 @@ public class Report_entrada extends AppCompatActivity {
                                     }
                                 }
                             }).start();
-                        }if (registro==false){
+                        }
+                        if (registro==false){
                             progressDialog.setTitle("Report Entrada - Cancelando");
                             progressDialog.setMessage("Espere un momento......");
                             progressDialog.setProgressStyle(progressDialog.STYLE_SPINNER);

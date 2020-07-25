@@ -78,6 +78,13 @@ public class Report_salida extends AppCompatActivity {
         destinomaterial = (Spinner)findViewById(R.id.destinomaterialsalida);
         progressDialog = new ProgressDialog(Report_salida.this);
 
+        //BLUETOOTH
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
         myDB = new DatabaseHelper(this);
         GenerarSalida.setOnClickListener(new View.OnClickListener() {
             @Override

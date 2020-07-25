@@ -66,6 +66,13 @@ public class Produccion_planta extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         tipomaterial.setAdapter(adapter);
 
+        //BLUETOOTH
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
         generarproduccion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
