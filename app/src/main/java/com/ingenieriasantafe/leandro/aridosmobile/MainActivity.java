@@ -64,7 +64,7 @@ private InputValidation inputValidation;
 
 public static final String APIUsuarios = "http://santafeinversiones.org/api/aridos/users";
 public static final String APIUnegociosAridos = "http://santafeinversiones.org/api/aridos/all/unegocios";
-public static final String APINumeroMaxAcumulados = "http://new.santafeinversiones.org/api/aridos-app/config/numerodatos";
+public static final String APINumeroMaxAcumulados = "http://santafeinversiones.org/api/aridos-app/config/numerodatos";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,9 +82,6 @@ public static final String APINumeroMaxAcumulados = "http://new.santafeinversion
         inputValidation = new InputValidation(this);
 
         myDB = new DatabaseHelper(this);
-
-
-
 
         notificacion = new NotificationCompat.Builder(this);
         notificacion.setAutoCancel(true);

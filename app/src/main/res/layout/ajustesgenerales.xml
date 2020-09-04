@@ -116,12 +116,23 @@
                     android:id="@+id/txtmaxacumulados"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
                     android:text="Maximos acumulados: "
                     android:textColor="#000"
                     android:layout_gravity="center"
                     android:layout_marginTop="20dp"
                     android:textStyle="bold"/>
+
+                <Button
+                    android:id="@+id/btnactualizarmaxacumulado"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/btnredondo"
+                    android:gravity="center"
+                    android:text="Actualizar" />
 
             </LinearLayout>
         </android.support.v7.widget.CardView>

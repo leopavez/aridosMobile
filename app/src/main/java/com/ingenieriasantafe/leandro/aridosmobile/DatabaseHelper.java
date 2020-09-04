@@ -130,6 +130,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     final String CREAR_TABLA_PRODUCCION_PLANTA = "CREATE TABLE prod_planta(id INTEGER PRIMARY KEY AUTOINCREMENT unique, tipomaterial TEXT, m3 TEXT, planta TEXT, procedencia TEXT, username TEXT,fecha TEXT, hora TEXT, estado TEXT)";
     final String CREAR_TABLA_REGISTROS_SALIDA = "CREATE TABLE registros_salida (id INTEGER PRIMARY KEY AUTOINCREMENT unique, patente TEXT, m3 TEXT, tipomaterial TEXT, planta TEXT, chofer TEXT,username TEXT, fecha TEXT, hora TEXT, estado TEXT, procedencia TEXT, destino TEXT)";
     final String CREAR_TABLA_UNEGOCIOS ="CREATE TABLE unegocios (id TEXT unique, nombre TEXT, estado TEXT)";
+
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null,11);
     }

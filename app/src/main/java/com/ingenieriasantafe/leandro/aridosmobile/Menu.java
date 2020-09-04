@@ -68,7 +68,7 @@ public class Menu extends AppCompatActivity implements View.OnClickListener {
     public static final String APIEnvioRegistrosProduccionPlanta = "http://santafeinversiones.org/api/aridos/produccion/xplanta";
     public static final String APIEnvioRegistrosProduccionPatente = "http://santafeinversiones.org/api/aridos/produccion/xpatente";
     public static final String APIEnvioRegistrosSalida = "http://santafeinversiones.org/api/aridos/registros/salida";
-    public static final String APIEnvioNotificacionAcumulados="http://new.santafeinversiones.org/api/aridos-app/mensaje";
+    public static final String APIEnvioNotificacionAcumulados="http://santafeinversiones.org/api/aridos-app/mensaje";
 
     private RequestQueue mRequestQueue;
     private StringRequest mStringRequest;
@@ -133,7 +133,7 @@ public class Menu extends AppCompatActivity implements View.OnClickListener {
         }
     }
 
-    private void EnviodatosAcopio() {
+    public void EnviodatosAcopio() {
         SQLiteDatabase db = myDB.getReadableDatabase();
         String estado = "PENDIENTE";
         listaregistrosacopio = new ArrayList<Registro_acopio>();
@@ -239,7 +239,7 @@ public class Menu extends AppCompatActivity implements View.OnClickListener {
         }
     }
 
-    private void EnvionotificacionMaximoAcumulado(){
+    public void EnvionotificacionMaximoAcumulado(){
         SQLiteDatabase db = myDB.getReadableDatabase();
 
         String estado = "PENDIENTE";
@@ -270,7 +270,21 @@ public class Menu extends AppCompatActivity implements View.OnClickListener {
 
         if (maxdatosacumulados.equals("SIN MAXIMO")){
 
-        }else if (datos>=Integer.parseInt(maxdatosacumulados)){
+        }else if(datos>= Integer.parseInt(maxdatosacumulados)){
+
+            Handler handler = new Handler(Looper.getMainLooper());
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    EnviodatosAcopio();
+                    EnvioDatosProduccionPlanta();
+                    EnvioDatosProduccionXPatente();
+                    EnviodatosSalida();
+                }
+            };
+            handler.post(runnable);
+        }
+        else if (datos>Integer.parseInt(maxdatosacumulados)){
 
 
             //NOTIFICACION ANDROID
@@ -321,7 +335,7 @@ public class Menu extends AppCompatActivity implements View.OnClickListener {
         }
     }
 
-    private void EnvioDatosProduccionXPatente() {
+    public void EnvioDatosProduccionXPatente() {
         SQLiteDatabase db = myDB.getReadableDatabase();
         String estado = "PENDIENTE";
         listaregistroproduccionpatente = new ArrayList<Registro_produccion_patente>();
@@ -434,7 +448,7 @@ public class Menu extends AppCompatActivity implements View.OnClickListener {
     }
 
 
-    private void EnvioDatosProduccionPlanta() {
+    public void EnvioDatosProduccionPlanta() {
         SQLiteDatabase db = myDB.getReadableDatabase();
         String estado = "PENDIENTE";
 
@@ -511,7 +525,7 @@ public class Menu extends AppCompatActivity implements View.OnClickListener {
     }
 
 
-    private void EnviodatosSalida() {
+    public void EnviodatosSalida() {
         SQLiteDatabase db = myDB.getReadableDatabase();
         String estado = "PENDIENTE";
 

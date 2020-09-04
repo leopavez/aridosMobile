@@ -22,6 +22,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -39,7 +40,9 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -74,7 +77,6 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
     public static final String APIEnvioRegistrosProduccionPlanta = "http://santafeinversiones.org/api/aridos/produccion/xplanta";
     public static final String APIEnvioRegistrosProduccionPatente = "http://santafeinversiones.org/api/aridos/produccion/xpatente";
     public static final String APIEnvioRegistrosSalida = "http://santafeinversiones.org/api/aridos/registros/salida";
-
 
     ArrayList<String> plantas;
 
@@ -177,8 +179,6 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
                     public void run() {
 
                         try{
-                            Thread.sleep(2000);
-
                             SQLiteDatabase db = myDB.getReadableDatabase();
                             String estado = "PENDIENTE";
 
@@ -221,8 +221,9 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
                                 });
 
                                 //ENVIO ACOPIO
-                                while (cursor.moveToNext()) {
-                                    reg_acopio = new Registro_acopio();
+                                reg_acopio = new Registro_acopio();
+
+                                for(cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()){
                                     reg_acopio.setId(cursor.getInt(0));
                                     reg_acopio.setPatente(cursor.getString(1));
                                     reg_acopio.setM3(cursor.getString(2));
@@ -232,67 +233,61 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
                                     reg_acopio.setHora(cursor.getString(6));
                                     reg_acopio.setUsername(cursor.getString(7));
                                     reg_acopio.setProcedencia(cursor.getString(8));
-                                    listaregistrosacopio.add(reg_acopio);
 
-                                }
 
-                                for (int i = 0; i < listaregistrosacopio.size(); i++) {
-                                    final int id = listaregistrosacopio.get(i).getId();
-                                    final String patente = listaregistrosacopio.get(i).getPatente().toString();
-                                    final String m3 = listaregistrosacopio.get(i).getM3().toString();
-                                    final String planta = listaregistrosacopio.get(i).getPlanta().toString();
-                                    final String chofer = listaregistrosacopio.get(i).getChofer().toString();
-                                    final String fecha = listaregistrosacopio.get(i).getFecha().toString();
-                                    final String hora = listaregistrosacopio.get(i).getHora().toString();
-                                    final String username = listaregistrosacopio.get(i).getUsername().toString();
-                                    final String procedencia = listaregistrosacopio.get(i).getProcedencia().toString();
+                                    final int id = reg_acopio.getId();
+                                    final String patente = reg_acopio.getPatente().toString();
+                                    final String m3 = reg_acopio.getM3().toString();
+                                    final String planta = reg_acopio.getPlanta().toString();
+                                    final String chofer = reg_acopio.getChofer().toString();
+                                    final String fecha = reg_acopio.getFecha().toString();
+                                    final String hora = reg_acopio.getHora().toString();
+                                    final String username = reg_acopio.getUsername().toString();
+                                    final String procedencia = reg_acopio.getProcedencia().toString();
 
-                                    listaregistrosacopio.remove(i);
 
-                                    final RequestParams params = new RequestParams();
-                                    String nvale = String.valueOf(id);
-                                    params.put("nrovale", nvale);
-                                    params.put("patente", patente);
-                                    params.put("m3", m3);
-                                    params.put("fecha", fecha);
-                                    params.put("hora", hora);
-                                    params.put("planta", planta);
-                                    params.put("chofer", chofer);
-                                    params.put("user", username);
-                                    params.put("procedencia", procedencia);
-
-                                    Handler handler = new Handler(Looper.getMainLooper());
-                                    Runnable runnable = new Runnable() {
+                                    mRequestQueue = Volley.newRequestQueue(getApplicationContext());
+                                    mStringRequest = new StringRequest(Request.Method.POST, APIEnvioRegistrosAcopio, new Response.Listener<String>() {
                                         @Override
-                                        public void run() {
-                                            AsyncHttpClient client = new AsyncHttpClient();
-                                            client.setMaxRetriesAndTimeout(0,5000);
-                                            client.post(APIEnvioRegistrosAcopio, params, new AsyncHttpResponseHandler() {
-                                                @Override
-                                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                                                    if (statusCode== 200){
-                                                        String response = new String(responseBody);
-                                                        Log.i("REQUEST", "" + response.toString());
-                                                        SQLiteDatabase db = myDB.getReadableDatabase();
-                                                        db.execSQL("UPDATE registros_acopio SET estado='ENVIADO' WHERE id='" + id + "'");
-                                                    }
-                                                }
-
-                                                @Override
-                                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                                                    Log.i("REQUEST FAIL",""+error.toString());
-                                                }
-                                            });
+                                        public void onResponse(String response) {
+                                            String responseapi = new String(response);
+                                            Log.i("REQUEST", "" + responseapi.toString());
+                                            SQLiteDatabase db = myDB.getReadableDatabase();
+                                            db.execSQL("UPDATE registros_acopio SET estado='ENVIADO' WHERE id='" + id + "'");
+                                        }
+                                    }, new Response.ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(VolleyError error) {
+                                            Log.i(TAG,"Error de conexion:" +error.toString());
+                                        }
+                                    }){
+                                        @Override
+                                        protected Map<String, String> getParams() throws AuthFailureError {
+                                            Map<String,String>params = new HashMap<String,String>();
+                                            String nvale = String.valueOf(id);
+                                            params.put("nrovale", nvale);
+                                            params.put("patente", patente);
+                                            params.put("m3", m3);
+                                            params.put("fecha", fecha);
+                                            params.put("hora", hora);
+                                            params.put("planta", planta);
+                                            params.put("chofer", chofer);
+                                            params.put("user", username);
+                                            params.put("procedencia", procedencia);
+                                            return params;
                                         }
                                     };
-                                    handler.post(runnable);
+                                    mRequestQueue.add(mStringRequest);
+
+
                                 }
-                                Thread.sleep(2000);
+
 
                                 //ENVIO DATOS PRODUCCIÓN PATENTE
 
-                                while (cursor1.moveToNext()) {
-                                    reg_prod_patente = new Registro_produccion_patente();
+                                reg_prod_patente = new Registro_produccion_patente();
+
+                                for (cursor1.moveToFirst(); !cursor1.isAfterLast(); cursor1.moveToNext()){
                                     reg_prod_patente.setId(cursor1.getInt(0));
                                     reg_prod_patente.setPatente(cursor1.getString(1));
                                     reg_prod_patente.setHorasmaquina(cursor1.getString(2));
@@ -315,95 +310,84 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
                                     reg_prod_patente.setCombustible(cursor1.getString(19));
                                     reg_prod_patente.setOperador(cursor1.getString(20));
 
-                                    listaregistroproduccionpatente.add(reg_prod_patente);
+                                    final int id = reg_prod_patente.getId();
+                                    final String patente = reg_prod_patente.getPatente().toString();
+                                    final String horasmaquina = reg_prod_patente.getHorasmaquina().toString();
+                                    final String nam = reg_prod_patente.getNam().toString();
+                                    final String nah = reg_prod_patente.getNah().toString();
+                                    final String nat = reg_prod_patente.getNat().toString();
+                                    final String se = reg_prod_patente.getSe().toString();
+                                    final String otras = reg_prod_patente.getOtras().toString();
+                                    final String botiquin = reg_prod_patente.getBotiquin().toString();
+                                    final String extintor = reg_prod_patente.getExtintor().toString();
+                                    final String ar = reg_prod_patente.getAr().toString();
+                                    final String baliza = reg_prod_patente.getBaliza().toString();
+                                    final String rt = reg_prod_patente.getRt().toString();
+                                    final String so = reg_prod_patente.getSo().toString();
+                                    final String pc = reg_prod_patente.getPc().toString();
+                                    final String hora = reg_prod_patente.getHora().toString();
+                                    final String fecha = reg_prod_patente.getFecha().toString();
+                                    final String username = reg_prod_patente.getUsername().toString();
+                                    final String planta = reg_prod_patente.getPlanta().toString();
+                                    final String combustible = reg_prod_patente.getCombustible().toString();
+                                    final String operador = reg_prod_patente.getOperador().toString();
 
-                                }
 
 
-                                for (int i = 0; i < listaregistroproduccionpatente.size(); i++) {
 
-
-                                    final int id = listaregistroproduccionpatente.get(i).getId();
-                                    final String patente = listaregistroproduccionpatente.get(i).getPatente().toString();
-                                    final String horasmaquina = listaregistroproduccionpatente.get(i).getHorasmaquina().toString();
-                                    final String nam = listaregistroproduccionpatente.get(i).getNam().toString();
-                                    final String nah = listaregistroproduccionpatente.get(i).getNah().toString();
-                                    final String nat = listaregistroproduccionpatente.get(i).getNat().toString();
-                                    final String se = listaregistroproduccionpatente.get(i).getSe().toString();
-                                    final String otras = listaregistroproduccionpatente.get(i).getOtras().toString();
-                                    final String botiquin = listaregistroproduccionpatente.get(i).getBotiquin().toString();
-                                    final String extintor = listaregistroproduccionpatente.get(i).getExtintor().toString();
-                                    final String ar = listaregistroproduccionpatente.get(i).getAr().toString();
-                                    final String baliza = listaregistroproduccionpatente.get(i).getBaliza().toString();
-                                    final String rt = listaregistroproduccionpatente.get(i).getRt().toString();
-                                    final String so = listaregistroproduccionpatente.get(i).getSo().toString();
-                                    final String pc = listaregistroproduccionpatente.get(i).getPc().toString();
-                                    final String hora = listaregistroproduccionpatente.get(i).getHora().toString();
-                                    final String fecha = listaregistroproduccionpatente.get(i).getFecha().toString();
-                                    final String username = listaregistroproduccionpatente.get(i).getUsername().toString();
-                                    final String planta = listaregistroproduccionpatente.get(i).getPlanta().toString();
-                                    final String combustible = listaregistroproduccionpatente.get(i).getCombustible().toString();
-                                    final String operador = listaregistroproduccionpatente.get(i).getOperador().toString();
-
-                                    listaregistroproduccionpatente.remove(i);
-
-                                    final RequestParams params = new RequestParams();
-                                    String idprod = String.valueOf(id);
-                                    params.put("idprodpatente", idprod);
-                                    params.put("patente", patente);
-                                    params.put("horasmaquina", horasmaquina);
-                                    params.put("nam", nam);
-                                    params.put("nah", nah);
-                                    params.put("nat", nat);
-                                    params.put("se", se);
-                                    params.put("otras", otras);
-                                    params.put("botiquin", botiquin);
-                                    params.put("extintor", extintor);
-                                    params.put("ar", ar);
-                                    params.put("baliza", baliza);
-                                    params.put("rt", rt);
-                                    params.put("so", so);
-                                    params.put("pc", pc);
-                                    params.put("hora", hora);
-                                    params.put("fecha", fecha);
-                                    params.put("username", username);
-                                    params.put("planta", planta);
-                                    params.put("combustible", combustible);
-                                    params.put("operador", operador);
-
-                                    Handler handler = new Handler(Looper.getMainLooper());
-                                    Runnable runnable = new Runnable() {
+                                    mRequestQueue = Volley.newRequestQueue(getApplicationContext());
+                                    mStringRequest = new StringRequest(Request.Method.POST, APIEnvioRegistrosProduccionPatente, new Response.Listener<String>() {
                                         @Override
-                                        public void run() {
-                                            AsyncHttpClient client = new AsyncHttpClient();
-                                            client.setMaxRetriesAndTimeout(0,5000);
-                                            client.post(APIEnvioRegistrosProduccionPatente, params, new AsyncHttpResponseHandler() {
-                                                @Override
-                                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                                                    if (statusCode == 200){
-                                                        String response = new String(responseBody).toUpperCase();
-                                                        Log.i("TAG", "ENVIO OK" + response);
-                                                        SQLiteDatabase db = myDB.getReadableDatabase();
-                                                        db.execSQL("UPDATE registros_produccion SET estado='ENVIADO' WHERE id='" + id + "'");
-                                                    }
-                                                }
-                                                @Override
-                                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                                                    Log.i("REQUEST FAIL",""+error.toString());
-                                                }
-                                            });
+                                        public void onResponse(String response) {
+                                            String responseapi = new String(response);
+                                            Log.i("REQUEST", "" + responseapi.toString());
+                                            SQLiteDatabase db = myDB.getReadableDatabase();
+                                            db.execSQL("UPDATE registros_produccion SET estado='ENVIADO' WHERE id='" + id + "'");
+                                        }
+                                    }, new Response.ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(VolleyError error) {
+                                            Log.i(TAG,"Error de conexion:" +error.toString());
+                                        }
+                                    }){
+                                        @Override
+                                        protected Map<String, String> getParams() throws AuthFailureError {
+                                            Map<String,String>params = new HashMap<String,String>();
+                                            String idprod = String.valueOf(id);
+                                            params.put("idprodpatente", idprod);
+                                            params.put("patente", patente);
+                                            params.put("horasmaquina", horasmaquina);
+                                            params.put("nam", nam);
+                                            params.put("nah", nah);
+                                            params.put("nat", nat);
+                                            params.put("se", se);
+                                            params.put("otras", otras);
+                                            params.put("botiquin", botiquin);
+                                            params.put("extintor", extintor);
+                                            params.put("ar", ar);
+                                            params.put("baliza", baliza);
+                                            params.put("rt", rt);
+                                            params.put("so", so);
+                                            params.put("pc", pc);
+                                            params.put("hora", hora);
+                                            params.put("fecha", fecha);
+                                            params.put("username", username);
+                                            params.put("planta", planta);
+                                            params.put("combustible", combustible);
+                                            params.put("operador", operador);
+                                            return params;
                                         }
                                     };
-                                    handler.post(runnable);
+                                    mRequestQueue.add(mStringRequest);
+
+
                                 }
-                                Thread.sleep(2000);
 
                                 //ENVIO DATOS PRODUCCION PLANTA
 
+                                reg_prod = new Registro_produccion_planta();
 
-
-                                while (cursor2.moveToNext()) {
-                                    reg_prod = new Registro_produccion_planta();
+                                for (cursor2.moveToFirst(); !cursor2.isAfterLast(); cursor2.moveToNext()){
                                     reg_prod.setId(cursor2.getInt(0));
                                     reg_prod.setTipomaterial(cursor2.getString(1));
                                     reg_prod.setM3(cursor2.getString(2));
@@ -412,70 +396,56 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
                                     reg_prod.setUsername(cursor2.getString(5));
                                     reg_prod.setFecha(cursor2.getString(6));
                                     reg_prod.setHora(cursor2.getString(7));
-                                    listaregistroproduccionplanta.add(reg_prod);
-                                }
+
+                                    final int id = reg_prod.getId();
+                                    final String tipomaterial = reg_prod.getTipomaterial().toString();
+                                    final String m3 = reg_prod.getM3().toString();
+                                    final String planta = reg_prod.getPlanta().toString();
+                                    final String username = reg_prod.getUsername().toString();
+                                    final String fecha = reg_prod.getFecha().toString();
+                                    final String hora = reg_prod.getHora().toString();
+                                    final String procedencia = reg_prod.getProcedencia().toString();
 
 
-                                for (int i = 0; i < listaregistroproduccionplanta.size(); i++) {
-
-                                    final int id = listaregistroproduccionplanta.get(i).getId();
-                                    final String tipomaterial = listaregistroproduccionplanta.get(i).getTipomaterial().toString();
-                                    final String m3 = listaregistroproduccionplanta.get(i).getM3().toString();
-                                    final String planta = listaregistroproduccionplanta.get(i).getPlanta().toString();
-                                    final String username = listaregistroproduccionplanta.get(i).getUsername().toString();
-                                    final String fecha = listaregistroproduccionplanta.get(i).getFecha().toString();
-                                    final String hora = listaregistroproduccionplanta.get(i).getHora().toString();
-                                    final String procedencia = listaregistroproduccionplanta.get(i).getProcedencia().toString();
-
-
-                                    listaregistroproduccionplanta.remove(i);
-
-                                    final RequestParams params = new RequestParams();
-                                    String idprod = String.valueOf(id);
-                                    params.put("idprodplanta", idprod);
-                                    params.put("tipomaterial", tipomaterial);
-                                    params.put("m3", m3);
-                                    params.put("fecha", fecha);
-                                    params.put("hora", hora);
-                                    params.put("planta", planta);
-                                    params.put("username", username);
-                                    params.put("procedencia", procedencia);
-
-                                    Handler handler = new Handler(Looper.getMainLooper());
-                                    Runnable runnable = new Runnable() {
+                                    mRequestQueue = Volley.newRequestQueue(getApplicationContext());
+                                    mStringRequest = new StringRequest(Request.Method.POST, APIEnvioRegistrosProduccionPlanta, new Response.Listener<String>() {
                                         @Override
-                                        public void run() {
-                                            AsyncHttpClient client = new AsyncHttpClient();
-                                            client.setMaxRetriesAndTimeout(0,5000);
-                                            client.post(APIEnvioRegistrosProduccionPlanta, params, new AsyncHttpResponseHandler() {
-                                                @Override
-                                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-
-                                                    if (statusCode==200){
-                                                        String response = new String(responseBody).toUpperCase();
-                                                        Log.i("TAG", "ENVIO OK" + response);
-                                                        SQLiteDatabase db = myDB.getReadableDatabase();
-
-                                                        db.execSQL("UPDATE prod_planta SET estado='ENVIADO' WHERE id='" + id + "'");
-                                                    }
-                                                }
-
-                                                @Override
-                                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                                                    Log.i("REQUEST FAIL",""+error.toString());
-                                                }
-                                            });
+                                        public void onResponse(String response) {
+                                            String responseapi = new String(response);
+                                            Log.i("REQUEST", "" + responseapi.toString());
+                                            SQLiteDatabase db = myDB.getReadableDatabase();
+                                            db.execSQL("UPDATE prod_planta SET estado='ENVIADO' WHERE id='" + id + "'");
+                                        }
+                                    }, new Response.ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(VolleyError error) {
+                                            Log.i(TAG,"Error de conexion:" +error.toString());
+                                        }
+                                    }){
+                                        @Override
+                                        protected Map<String, String> getParams() throws AuthFailureError {
+                                            Map<String,String>params = new HashMap<String,String>();
+                                            String idprod = String.valueOf(id);
+                                            params.put("idprodplanta", idprod);
+                                            params.put("tipomaterial", tipomaterial);
+                                            params.put("m3", m3);
+                                            params.put("fecha", fecha);
+                                            params.put("hora", hora);
+                                            params.put("planta", planta);
+                                            params.put("username", username);
+                                            params.put("procedencia", procedencia);
+                                            return params;
                                         }
                                     };
-                                    handler.post(runnable);
+                                    mRequestQueue.add(mStringRequest);
 
                                 }
-                                Thread.sleep(2000);
 
                                 //ENVIO DATOS SALIDA
 
-                                while (cursor3.moveToNext()) {
-                                    reg_salida = new Registro_salida();
+                                reg_salida = new Registro_salida();
+                                for (cursor3.moveToNext(); !cursor3.isAfterLast(); cursor3.moveToNext()){
+
                                     reg_salida.setId(cursor3.getInt(0));
                                     reg_salida.setPatente(cursor3.getString(1));
                                     reg_salida.setM3(cursor3.getString(2));
@@ -488,75 +458,54 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
                                     reg_salida.setTipomaterial(cursor3.getString(9));
                                     reg_salida.setDestino(cursor3.getString(10));
 
-                                    listaregistrosalida.add(reg_salida);
+                                    final int id = reg_salida.getId();
+                                    final String patente = reg_salida.getPatente().toString();
+                                    final String m3 = reg_salida.getM3().toString();
+                                    final String planta = reg_salida.getPlanta().toString();
+                                    final String chofer = reg_salida.getChofer().toString();
+                                    final String fecha = reg_salida.getFecha().toString();
+                                    final String hora = reg_salida.getHora().toString();
+                                    final String username = reg_salida.getUsername().toString();
+                                    final String procedencia = reg_salida.getProcedencia().toString();
+                                    final String tipomaterial = reg_salida.getTipomaterial().toString();
+                                    final String destino = reg_salida.getDestino().toString();
 
-                                }
-
-
-                                for (int i = 0; i < listaregistrosalida.size(); i++) {
-
-
-                                    final int id = listaregistrosalida.get(i).getId();
-                                    final String patente = listaregistrosalida.get(i).getPatente().toString();
-                                    final String m3 = listaregistrosalida.get(i).getM3().toString();
-                                    final String planta = listaregistrosalida.get(i).getPlanta().toString();
-                                    final String chofer = listaregistrosalida.get(i).getChofer().toString();
-                                    final String fecha = listaregistrosalida.get(i).getFecha().toString();
-                                    final String hora = listaregistrosalida.get(i).getHora().toString();
-                                    final String username = listaregistrosalida.get(i).getUsername().toString();
-                                    final String procedencia = listaregistrosalida.get(i).getProcedencia().toString();
-                                    final String tipomaterial = listaregistrosalida.get(i).getTipomaterial().toString();
-                                    final String destino = listaregistrosalida.get(i).getDestino().toString();
-
-                                    listaregistrosalida.remove(i);
-
-                                    final RequestParams params = new RequestParams();
-                                    String nvale = String.valueOf(id);
-                                    params.put("nrovale", nvale);
-                                    params.put("patente", patente);
-                                    params.put("m3", m3);
-                                    params.put("fecha", fecha);
-                                    params.put("hora", hora);
-                                    params.put("planta", planta);
-                                    params.put("chofer", chofer);
-                                    params.put("user", username);
-                                    params.put("procedencia", procedencia);
-                                    params.put("tipomaterial", tipomaterial);
-                                    params.put("destino", destino);
-
-                                    Handler handler = new Handler(Looper.getMainLooper());
-                                    Runnable runnable = new Runnable() {
+                                    mRequestQueue = Volley.newRequestQueue(getApplicationContext());
+                                    mStringRequest = new StringRequest(Request.Method.POST, APIEnvioRegistrosSalida, new Response.Listener<String>() {
                                         @Override
-                                        public void run() {
-                                            AsyncHttpClient client = new AsyncHttpClient();
-                                            client.setMaxRetriesAndTimeout(0,5000);
-                                            client.post(APIEnvioRegistrosSalida, params, new AsyncHttpResponseHandler() {
-                                                @Override
-                                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                                                    if (statusCode==200){
-                                                        String response = new String(responseBody).toUpperCase();
-                                                        Log.i("TAG", "ENVIO OK" + response);
-                                                        SQLiteDatabase db = myDB.getReadableDatabase();
-                                                        db.execSQL("UPDATE registros_salida SET estado='ENVIADO' WHERE id='" + id + "'");
-                                                    }
-                                                }
-
-                                                @Override
-                                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                                                    try{
-                                                        String response = new String(responseBody).toUpperCase();
-                                                        Log.i("REQUEST FAIL",""+error.toString()+" AA "+response);
-                                                    }catch (Exception e){
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                            });
+                                        public void onResponse(String response) {
+                                            String responseapi = new String(response);
+                                            Log.i("REQUEST", "" + responseapi.toString());
+                                            SQLiteDatabase db = myDB.getReadableDatabase();
+                                            db.execSQL("UPDATE registros_salida SET estado='ENVIADO' WHERE id='" + id + "'");
+                                        }
+                                    }, new Response.ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(VolleyError error) {
+                                            Log.i(TAG,"Error de conexion:" +error.toString());
+                                        }
+                                    }){
+                                        @Override
+                                        protected Map<String, String> getParams() throws AuthFailureError {
+                                            Map<String,String>params = new HashMap<String,String>();
+                                            String nvale = String.valueOf(id);
+                                            params.put("nrovale", nvale);
+                                            params.put("patente", patente);
+                                            params.put("m3", m3);
+                                            params.put("fecha", fecha);
+                                            params.put("hora", hora);
+                                            params.put("planta", planta);
+                                            params.put("chofer", chofer);
+                                            params.put("user", username);
+                                            params.put("procedencia", procedencia);
+                                            params.put("tipomaterial", tipomaterial);
+                                            params.put("destino", destino);
+                                            return params;
                                         }
                                     };
-                                    handler.post(runnable);
+                                    mRequestQueue.add(mStringRequest);
                                 }
-                                Thread.sleep(2000);
-
+                                Thread.sleep(5000);
                                 progressDialog.dismiss();
 
                                 runOnUiThread(new Runnable() {
@@ -567,7 +516,6 @@ public class Ajustes extends AppCompatActivity implements View.OnClickListener{
                                 });
                                 Intent refresh = new Intent(Ajustes.this,Ajustes.class);
                                 startActivity(refresh);
-                                finish();
                             }
                         }catch (Exception e){
                             e.printStackTrace();
